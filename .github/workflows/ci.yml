@@ -37,8 +37,15 @@ jobs:
 
       - name: Assert .env.example holds no real values
         run: |
-          # Every secret-shaped key must have an EMPTY value after the '='.
-          if grep -nE '^(.*(SECRET|PASSWORD|TOKEN|API_KEY|HASH))=.+' .env.example; then
+          # Every credential-shaped key must have an EMPTY value after the '='.
+          #
+          # Two things this must NOT do, both learned from false positives:
+          #   1. Match the word anywhere in the key. ACCESS_TOKEN_MINUTES=15 is a
+          #      duration, not a token, so the key must END with the word.
+          #   2. Count a trailing comment as a value. `JWT_SECRET=   # 32+ bytes`
+          #      is empty, so comments are stripped before the test.
+          if sed -E 's/[[:space:]]*#.*$//' .env.example \
+             | grep -nE '^[A-Za-z0-9_]*(SECRET|PASSWORD|TOKEN|API_KEY|API_ID|CLIENT_ID|HASH)=[[:space:]]*[^[:space:]]'; then
             echo "::error::.env.example contains a non-empty secret value (SEC-17)."
             exit 1
           fi
