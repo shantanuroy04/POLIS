@@ -34,6 +34,7 @@ ml/artifacts/
 node_modules/
 dist/
 .vite/
+*.tsbuildinfo
 
 # Editors / OS
 .vscode/

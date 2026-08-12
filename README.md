@@ -138,7 +138,7 @@ Honest status. Nothing here is hidden in a backlog.
 | Gap | Impact | Owner / due |
 |---|---|---|
 | Local Python is **3.10**; TRD §4.2 specifies **3.11+** | Ruff/black target `py310`. CI runs 3.11. Resolve before Week 3: either install 3.11 team-wide, or amend TRD §4.2. | C1, Week 2 |
-| `frontend/package-lock.json` absent | `npm ci` in CI fails until someone runs `npm install` and commits the lockfile. The frontend job is therefore **not** yet a required status check — add it once this is fixed. | D1, Week 1 |
+| 5 dev-only npm advisories remain | esbuild and the react-router moderates. Both need a major bump (vite 5→7, react-router 6→7) that buys nothing today: the esbuild issue is dev-server-only and POLIS does not do SSR. CI audits production deps only (`--omit=dev`), which is clean. Revisit at the Phase 6 UI freeze. | D1, Week 12 |
 | `transformers` is not pinned | Deliberate. Its 4.44.2 proposal carries 29 advisories with fixes spanning 4.48–5.5, and nothing imports it yet. Pinned in task 3.16 against ADR-006/ADR-007. See TRD §4.2. | B1, Week 8 |
 | Branch protection bypassable by admin | `enforce_admins` is off, because a 1-approval rule is unsatisfiable while the repo has one collaborator. Turn it on once teammates have accepted their invites. | C1, Week 2 |
 | Model is a stub | Every classification is deterministic pseudo-random. Not a model. Real one lands Week 8. | B1, Week 8 |
