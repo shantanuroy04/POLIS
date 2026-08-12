@@ -9,9 +9,21 @@
 #   local/prod CPU:  pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
 #   Colab/Kaggle:    GPU build is preinstalled
 # Added to this file only when Phase 3 replaces the stub (task 3.16).
+#
+# transformers is absent for the same reason, and one more. No code imports it
+# yet — ml/predict.py is a stub — so pinning it now buys nothing and costs a
+# permanently red pip-audit: the 4.44.2 pin carries 29 advisories whose fixes
+# run from 4.48 all the way to 5.5, i.e. across a major version. Choosing that
+# version is a Phase 3 decision that has to be made against ADR-006 (XLM-R head
+# topology) and ADR-007 (CPU inference), not smuggled in during Week 1. Team B
+# pins it in task 3.16 and re-runs pip-audit then. Until then the audit gate
+# stays honest instead of being muted with an ignore list.
 
 # ---- API ----
-fastapi==0.115.0
+fastapi==0.141.1
+# Pinned directly although FastAPI pulls it in: starlette carried 7 advisories
+# at the 0.38.x FastAPI 0.115 allowed, so the version is ours to control.
+starlette==1.6.0
 uvicorn[standard]==0.32.0
 pydantic==2.9.2
 pydantic-settings==2.6.0
@@ -26,21 +38,21 @@ apscheduler==3.10.4
 
 # ---- Security ----
 argon2-cffi==23.1.0
-pyjwt==2.9.0
+pyjwt==2.13.0
 slowapi==0.1.9
-bleach==6.1.0
+bleach==6.4.0
 
 # ---- Ingestion ----
 feedparser==6.0.11
 httpx==0.27.2
 beautifulsoup4==4.12.3
-lxml==5.3.0
+lxml==6.1.1
 telethon==1.36.0
 praw==7.7.1
 lingua-language-detector==2.0.2
 
 # ---- ML / data ----
-transformers==4.44.2
+# transformers: see the header note. Pinned in task 3.16, not here.
 scikit-learn==1.5.2
 pandas==2.2.3
 numpy==1.26.4

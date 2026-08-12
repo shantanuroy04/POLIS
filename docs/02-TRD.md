@@ -260,11 +260,14 @@ polis/
 
 **Directory ownership prevents merge conflicts** ⟵ PRD R-15. A PR touching another team's directory requires that team's review.
 
-### 4.2 Technology Versions **[PROPOSED — pin exactly in Week 1]**
+### 4.2 Technology Versions **[CONFIRMED — pinned in Week 1, except `transformers`]**
+
+Pinned exactly in `requirements.txt` and verified by `pip-audit --strict` in CI. One row remains **[TBD]**: `transformers`, for the reason given below the table.
 
 | Component | Package | Version constraint |
 |---|---|---|
-| API | `fastapi` | `==0.115.*` |
+| API | `fastapi` | `==0.141.*` |
+| ASGI toolkit | `starlette` | `==1.6.*` — pinned directly, see note |
 | ASGI server | `uvicorn[standard]` | `==0.32.*` |
 | Validation | `pydantic` | `==2.9.*` |
 | Settings | `pydantic-settings` | `==2.6.*` |
@@ -273,22 +276,26 @@ polis/
 | Driver | `psycopg[binary]` | `==3.2.*` |
 | Scheduling | `apscheduler` | `==3.10.*` |
 | Passwords | `argon2-cffi` | `==23.1.*` |
-| JWT | `pyjwt` | `==2.9.*` |
+| JWT | `pyjwt` | `==2.13.*` |
 | Rate limit | `slowapi` | `==0.1.*` |
-| Sanitisation | `bleach` | `==6.1.*` |
+| Sanitisation | `bleach` | `==6.4.*` |
 | Feeds | `feedparser` | `==6.0.*` |
 | HTTP | `httpx` | `==0.27.*` |
-| HTML | `beautifulsoup4` + `lxml` | `==4.12.*`, `==5.3.*` |
+| HTML | `beautifulsoup4` + `lxml` | `==4.12.*`, `==6.1.*` |
 | Telegram | `telethon` | `==1.36.*` |
 | Reddit | `praw` | `==7.7.*` |
 | Language ID | `lingua-language-detector` | `==2.0.*` |
 | ML | `torch` (CPU wheel in prod) | `==2.4.*` |
-| ML | `transformers` | `==4.44.*` |
+| ML | `transformers` | **unpinned until task 3.16** — see note |
 | ML | `scikit-learn`, `pandas`, `numpy` | `==1.5.*`, `==2.2.*`, `==1.26.*` |
 | Test | `pytest`, `pytest-cov`, `pytest-asyncio` | latest pinned |
 | Lint | `ruff`, `black` | latest pinned |
 | Security | `pip-audit`, `gitleaks` | latest pinned |
 | Frontend | React 18, Vite 5, TypeScript 5, TailwindCSS 3, Recharts 2, Axios 1, React Router 6, TanStack Query 5 | pinned in `package-lock.json` |
+
+> **Five pins moved in Week 1 for advisories, not preference.** `fastapi` 0.115 → 0.141, `pyjwt` 2.9 → 2.13, `bleach` 6.1 → 6.4, `lxml` 5.3 → 6.1. `starlette` is now pinned directly rather than inherited: FastAPI 0.115 capped it below 0.42, which left seven advisories unfixable without moving FastAPI itself. All 36 Week-1 tests pass on the new set and `pip-audit --strict` reports no known vulnerabilities.
+>
+> **`transformers` is deliberately not pinned yet.** The 4.44.2 figure above was proposed before any code existed; it now carries 29 advisories whose fixes span 4.48 through 5.5 — across a major version. Nothing imports the package (`ml/predict.py` is a stub), so pinning it now would only keep `pip-audit` permanently red or force an ignore-list that hides real findings. Team B pins it in task 3.16 against ADR-006 and ADR-007, and re-runs the audit then. ⟵ TBD, tracked with the Phase 3 gate.
 
 > **CPU-only torch in production.** The deployed backend installs `torch` from the CPU index URL; the full CUDA wheel is ~2.5 GB and will exhaust free-tier build limits. Training environments (Colab/Kaggle) install the GPU build separately. ⟵ PRD C-4, C-5.
 
