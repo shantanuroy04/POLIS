@@ -1,0 +1,42 @@
+# Implementation Plan task 1.4
+
+# Secrets — .env is NEVER committed. .env.example is (with empty values).
+.env
+.env.*
+!.env.example
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ML artefacts — PRD C-8: weights exceed GitHub's 100MB limit, they live on
+# Hugging Face Hub and are loaded by URI. Datasets are large and licence-bound.
+ml/data/
+ml/artifacts/
+*.pt
+*.bin
+*.safetensors
+*.ckpt
+
+# Database dumps — may contain collected content; never committed (DB §11.3)
+*.sql
+*.dump
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

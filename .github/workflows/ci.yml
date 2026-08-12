@@ -1,0 +1,109 @@
+# POLIS CI — Implementation Plan task 1.10
+#
+# Gate order matters: lint and secret-scan are cheap and fail fast; the
+# dependency audit and tests come after. Every job here BLOCKS merge to
+# `develop` and `main` (SEC-28). Branch protection must require them.
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history — SEC-18 scans every commit, not just HEAD
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Assert .env is not committed
+        run: |
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "::error::.env is committed. It must never be (SEC-17)."
+            exit 1
+          fi
+
+      - name: Assert .env.example holds no real values
+        run: |
+          # Every secret-shaped key must have an EMPTY value after the '='.
+          if grep -nE '^(.*(SECRET|PASSWORD|TOKEN|API_KEY|HASH))=.+' .env.example; then
+            echo "::error::.env.example contains a non-empty secret value (SEC-17)."
+            exit 1
+          fi
+
+  python:
+    name: Python lint, test, audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          # TRD §4.2 target. Local dev is currently on 3.10 — see README "Known gaps".
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # CPU-only torch index: the CUDA wheel is ~2.5GB and blows the runner
+          # disk/time budget for no benefit — production is CPU-only (ADR-007).
+          pip install -r requirements-dev.txt
+
+      - name: Ruff (lint)
+        run: ruff check .
+
+      - name: Black (format check)
+        run: black --check .
+
+      - name: Pytest with coverage
+        run: pytest --cov --cov-report=term-missing --cov-report=xml
+
+      # NFR-5.1 requires >=70% on backend + ingestion business logic. Not enforced
+      # as a hard gate yet: at Week 1 the codebase is a skeleton, so the number is
+      # meaningless. Turn this on in Phase 5 when there is logic to cover.
+      # - name: Coverage gate
+      #   run: coverage report --fail-under=70
+
+      - name: pip-audit (SEC-24)
+        run: pip-audit --requirement requirements.txt --strict
+
+  frontend:
+    name: Frontend lint, test, audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: npm audit (SEC-24)
+        run: npm audit --omit=dev --audit-level=high

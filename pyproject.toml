@@ -1,0 +1,54 @@
+# POLIS tooling configuration — Implementation Plan tasks 1.8, 1.9
+
+[tool.ruff]
+# NOTE: TRD §4.2 specifies Python 3.11+. The current dev machine has 3.10.0.
+# Targeting py310 so lint matches what actually runs. Resolve before Week 3:
+# either install 3.11 across the team, or amend TRD §4.2 to 3.10+.
+target-version = "py310"
+line-length = 100
+extend-exclude = ["alembic/versions", "frontend"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # bugbear
+    "UP",       # pyupgrade
+    "S",        # bandit — security lint (SEC-24)
+    "C4",       # comprehensions
+    "SIM",      # simplify
+]
+ignore = [
+    "E501",     # line length is black's job
+    "B008",     # FastAPI's Depends() in defaults is the documented idiom
+]
+
+[tool.ruff.lint.per-file-ignores]
+# S101: assert is the point of a test.
+# S105/S106: test fixtures need literal dummy secrets. These are NOT real
+# credentials — `gitleaks` (CI + pre-commit) is what guards against real ones.
+"tests/**" = ["S101", "S105", "S106"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+extend-exclude = "alembic/versions|frontend"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q --strict-markers"
+markers = [
+    "integration: requires a live PostgreSQL instance",
+    "slow: takes more than a second",
+]
+
+[tool.coverage.run]
+# Coverage target is >=70% on backend and ingestion business logic (NFR-5.1).
+# Frontend has its own Vitest coverage.
+source = ["backend", "ingestion", "ml", "alerts"]
+omit = ["*/__init__.py", "*/tests/*"]
+
+[tool.coverage.report]
+skip_empty = true

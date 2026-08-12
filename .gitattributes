@@ -1,0 +1,12 @@
+# Team is mixed Windows/Linux/macOS. Normalise to LF in the repo so a Windows
+# checkout does not produce whole-file diffs against a Linux one, and so CI
+# (Linux) sees the same bytes as the author.
+* text=auto eol=lf
+
+# Binary — never touch.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.pt binary
+*.bin binary
+*.safetensors binary

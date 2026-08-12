@@ -1,0 +1,43 @@
+# POLIS pre-commit hooks — Implementation Plan task 1.11
+#
+# Install once per developer:   pre-commit install
+#
+# These mirror the CI gates so a failure is caught in 2 seconds locally rather
+# than 3 minutes into a pipeline run. CI still re-runs everything — a local hook
+# can be skipped with --no-verify, CI cannot.
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+        # Formatting is owned by black (pyproject.toml); ruff-format would fight it.
+        stages: [manual]
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks # SEC-18 — blocks a secret before it enters history at all
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        # Model weights belong on Hugging Face Hub, not in git (PRD C-8).
+        args: [--maxkb=5000]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        # Direct commits to main/develop are forbidden (SEC-28); use a feature branch.
+        args: [--branch, main, --branch, develop]
