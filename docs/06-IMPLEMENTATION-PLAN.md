@@ -37,6 +37,12 @@ Success is defined by PRD §23 MVP Release Criteria. Nothing beyond that list is
 
 ## 3. Team Structure
 
+> ## ⚠ SUPERSEDED — the project has one developer, not six
+>
+> This section, §5 and §6 assume six people. The actual team is **one person**, which is a 16× gap in person-weeks. **[DOC-016 Solo Execution Plan](16-SOLO-EXECUTION-PLAN.md) is the plan that is executed.** It cuts scope by ~75% and gives a 15-week schedule that fits ~225 hours.
+>
+> Nothing below is deleted. It remains the plan this project was *designed* against, and DOC-016 §3.2 records every deferred item and its reason. Read this section as design intent; read DOC-016 as delivery.
+
 | Team | Members | Owns | Primary directories |
 |---|---|---|---|
 | **A — Data/Ingestion** | 2 (A1, A2) | Source adapters, cleaning, dedup, scheduling, source metadata | `ingestion/` |

@@ -40,6 +40,7 @@ Decision-status convention used throughout: **[CONFIRMED]** agreed decision · *
 | 13 | [Testing & QA Report](13-TESTING-QA-REPORT.md) | Test strategy, traceability, release gate | All | TRD §16, PRD §22/§23 | Template complete; **all results NOT RUN — RELEASE BLOCKED** | 0.1 |
 | 14 | [Data Source & Governance](14-DATA-SOURCE-GOVERNANCE.md) | Source register, licensing, ethical safeguards | Team A | PRD §9/§13, TRD §5.1 | Categories confirmed; **specific source instances [TBD]** | 1.0 |
 | 15 | [Architecture Decision Records](15-ARCHITECTURE-DECISIONS.md) | The *why* behind 15 major decisions the TRD already specifies | Team C + B | TRD (the *how*) | Complete — **4 statuses corrected to match source docs** | 1.1 |
+| 16 | [Solo Execution Plan](16-SOLO-EXECUTION-PLAN.md) | The plan that is actually executed. One developer, ~225 h, ~75% scope cut with every deferral reasoned | Solo | DOC-006 (superseded §3/§5/§6) | **Confirmed — read this before DOC-006** | 1.0 |
 
 ## Supporting Files
 

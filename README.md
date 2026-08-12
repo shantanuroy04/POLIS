@@ -60,7 +60,7 @@ The last command must return a schema-valid dict. If it does, the ML↔backend c
 
 ## Repository layout
 
-Directory ownership prevents merge conflicts. A PR touching another team's directory needs that team's review.
+Directory ownership was designed to prevent merge conflicts between six people. **The project has one developer**, so the review rule is inert — see [DOC-016](docs/16-SOLO-EXECUTION-PLAN.md). The layout stays because the module boundaries are still worth keeping.
 
 ```
 ingestion/   Team A — source adapters, cleaning, dedup, scheduling
