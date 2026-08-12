@@ -107,6 +107,8 @@ The poll interval is a *derived* value, not a free knob — `backend/config.py` 
 Issue → feature branch → tests → PR → CI → review (≥1) → squash merge to develop
 ```
 
+`main` and `develop` are protected: no direct pushes, no force pushes, no deletion, linear history, 1 approving review, stale reviews dismissed on new commits, conversations resolved, and the **Secret scan** and **Python lint, test, audit** checks green and up to date with the base branch.
+
 Branch naming: `ingest/rss-parser`, `ml/xlmr-baseline`, `be/alert-routes`, `fe/alert-detail`.
 
 No direct pushes to `main` or `develop`. CI (lint, format, tests, `pip-audit`, `npm audit`, `gitleaks`) must pass before merge. Keep PRs under ~400 changed lines — a bigger one gets rubber-stamped, not reviewed.
@@ -136,8 +138,9 @@ Honest status. Nothing here is hidden in a backlog.
 | Gap | Impact | Owner / due |
 |---|---|---|
 | Local Python is **3.10**; TRD §4.2 specifies **3.11+** | Ruff/black target `py310`. CI runs 3.11. Resolve before Week 3: either install 3.11 team-wide, or amend TRD §4.2. | C1, Week 2 |
-| No GitHub remote or branch protection yet | Task 1.1 is only half done — `git init` ran locally; the remote, protected `main`, and required-reviewer rule still need creating. | C1, Week 1 |
-| `frontend/package-lock.json` absent | `npm ci` in CI will fail until someone runs `npm install` and commits the lockfile. | D1, Week 1 |
+| `frontend/package-lock.json` absent | `npm ci` in CI fails until someone runs `npm install` and commits the lockfile. The frontend job is therefore **not** yet a required status check — add it once this is fixed. | D1, Week 1 |
+| `transformers` is not pinned | Deliberate. Its 4.44.2 proposal carries 29 advisories with fixes spanning 4.48–5.5, and nothing imports it yet. Pinned in task 3.16 against ADR-006/ADR-007. See TRD §4.2. | B1, Week 8 |
+| Branch protection bypassable by admin | `enforce_admins` is off, because a 1-approval rule is unsatisfiable while the repo has one collaborator. Turn it on once teammates have accepted their invites. | C1, Week 2 |
 | Model is a stub | Every classification is deterministic pseudo-random. Not a model. Real one lands Week 8. | B1, Week 8 |
 | No database schema yet | Alembic migrations 0001–0009 land Weeks 3–4 (Phase 5). | C1, Week 3 |
 | 21 open `[TBD]` items | Tracked with owners and due weeks in the [consistency report §7](docs/DOCUMENT-CONSISTENCY-REPORT.md). | various |
