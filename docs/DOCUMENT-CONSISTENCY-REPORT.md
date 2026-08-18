@@ -4,6 +4,8 @@
 
 ---
 
+> **This tracker is historical.** The live list is `STATUS.md` in the repository root — eight open items, not thirty-four. Entries below are kept as the record of what was decided and why, not as a to-do list.
+
 ## 1. Document Control
 
 | Field | Value |

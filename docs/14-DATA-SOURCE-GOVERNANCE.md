@@ -151,6 +151,9 @@ Any new source category proposed after this document's baseline must be checked 
 
 ## 5. Open Items
 
+> **This tracker is historical.** The live list is `STATUS.md` in the repository root — eight open items, not thirty-four. Entries below are kept as the record of what was decided and why, not as a to-do list.
+
+
 | ID | Item | Status / Resolution | Owner + due |
 |---|---|---|---|
 | ~~GOV-1~~ | Verify LIAR licence | **CLOSED — descoped, not verified.** The disinfo head is cut in DOC-016 §3.2, so the dataset is unused and no licence check is owed. Recorded as descoped rather than passed, because "verified" would be a false claim | 2026-08-13 |

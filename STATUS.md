@@ -1,0 +1,132 @@
+# POLIS — Status
+
+**The only file you need to open.** Updated every session. Everything else is reference.
+
+| | |
+|---|---|
+| Today | Week 3 of 26 · target **31 Jan 2027** |
+| Capacity | 1 person, ~9 h/week |
+| Tests | **86 passing**, CI green on `main` and `develop` |
+| Repo | https://github.com/shantanuroy04/POLIS |
+
+---
+
+## Do this next
+
+Three things, in order. Nothing else.
+
+| # | Task | Why now |
+|---|---|---|
+| **1** | **Cleaner** — strip HTML, NFKC normalise, flag truncation | The adapter deliberately stores raw. Nothing can be scored until this exists |
+| **2** | **Language detection** — `lingua`, confidence floor 0.60 | Every indicator groups by language |
+| **3** | **Dedupe** — SHA-256 exact + SimHash near-duplicate | UN News re-posts the same story across feeds. Without this the volume numbers lie |
+
+All three are Week 4 in the plan. All three are pure Python with no database — they run against `RawItem` and return a cleaned object.
+
+**Then** Week 5 is the database, and that is the next real milestone.
+
+---
+
+## Done
+
+| Week | What | Evidence |
+|---|---|---|
+| 1 | Repo, CI, security headers, frozen `score_text` stub, design tokens | 36 tests, 3 CI gates green |
+| 2 | Decisions: languages, topics, regions, corpus. SSRF guard + guarded fetch | 73 tests |
+| 3 | RSS adapter, source registry, live source checker | 86 tests, 4 feeds parsing |
+
+**Working right now:** `python -m ingestion.check_sources` fetches 4 real feeds and parses 110 items in 3 languages, through an SSRF-guarded, size-capped, rate-paced HTTP client.
+
+---
+
+## The decisions already made — do not reopen
+
+| | |
+|---|---|
+| Languages | **Arabic, English, French** |
+| Sources | UN News ×3 + ReliefWeb. Terms read. France 24 removed (licence forbids it), BBC held (terms unreadable) |
+| Training corpus | `cardiffnlp/tweet_sentiment_multilingual`, CC BY 3.0 |
+| Model | Fine-tune XLM-R. **Sentiment head certain, hostility conditional** |
+| Indicators | **IND-01 and IND-02 only** |
+| UI | **4 pages**: Feed, Alert Center, Alert Detail, Dashboard (1 chart) |
+| Auth | Single account, Argon2id, audit log. No RBAC matrix |
+| Deploy | Local demo primary; one cloud attempt in Week 21 |
+
+---
+
+## Open questions — 8, not 34
+
+Everything else is closed or descoped. This table is now the **only** authoritative list.
+
+| ID | Question | Needed by |
+|---|---|---|
+| **TBD-11** | Real `n_min` values, measured from actual volume | Week 8 ⟵ **highest risk** |
+| **TBD-20** | Hostility corpus licence — is OffensEval's data actually usable? | end of Week 6 |
+| **GOV-11** | One non-UN publisher with compatible terms | before Week 20 |
+| **GOV-8** | PRD wants ≥ 8 sources; 4 are live | with GOV-11 |
+| **TBD-16** | Latency budget preconditions, measured not assumed | Week 8, re-checked Week 23 |
+| **TBD-10** | Does free-tier RAM hold a transformer? | Week 21 |
+| **GOV-7** | Takedown-request procedure (short, write it once) | Week 12 |
+| **GOV-10** | Re-verify every feed still works | Week 25 |
+
+### The one that can actually sink the demo
+
+**TBD-11.** Four sources yield roughly 50–100 new items a day. The indicators split that by language, by region, and by 24-hour window before comparing against a 14-day baseline. `n_min` was sized for eight sources, so it may suppress **every** indicator — the system correctly refusing to speak, and a blank demo at the same time.
+
+Measure real volume in Weeks 5–8. If it is too thin: widen the window to 72 h, or compute at macro-region instead of subregion. **Never lower `n_min` until something fires** — that is fitting the threshold to the answer you want.
+
+---
+
+## Schedule
+
+| Weeks | | Ends |
+|---|---|---|
+| 4 | Cleaner, language, dedupe | 30 Aug 2026 |
+| 5–6 | Database: 8 tables, migrations, models. **Decide TBD-20** | 13 Sep |
+| 7–8 | `pipeline_cycle` chained, running unattended 24 h | 27 Sep |
+| 9–10 | Backend: auth, audit, 10 endpoints | 11 Oct |
+| 11–12 | Frontend: Feed + Alert Center | 25 Oct |
+| **13** | **Buffer — do not fill** | 1 Nov |
+| 14–16 | **ML: fine-tune, evaluate, swap out the stub** | 22 Nov |
+| 17–18 | IND-01, IND-02, alerts, severity | 6 Dec |
+| 19–20 | Alert Detail, review flow, dashboard chart | 20 Dec |
+| 21 | Cloud deploy — hard stop at week's end | 27 Dec |
+| **22** | **Buffer — exam season lands here** | 3 Jan 2027 |
+| 23 | Security: ASVS L1, injection, rate limit | 10 Jan |
+| 24 | Tests to 70%, acceptance criteria | 17 Jan |
+| 25 | Report, demo rehearsal, tag v1.0.0 | 24 Jan |
+| **26** | **Submission buffer** | 31 Jan |
+
+**~2 weeks clear of mid-February.** That gap is insurance against the faculty announcing a date early — not spare time.
+
+---
+
+## Rules
+
+**On documentation.** `docs/01` through `docs/15` are **frozen design reference**. They are examiner-facing and already written. Do **not** update them week to week — that ritual costs hours and produces no system. They change only when a design decision genuinely changes, and DOC-016 records delivery.
+
+**Update this file, and nothing else, as you work.**
+
+**On scope.** The only list scope may grow from is DOC-016 §3.3, and not before Week 20. "It's small, I'll just add it" is how the buffer disappears.
+
+**On working alone.** Self-merge PRs — CI is the reviewer. One vertical slice per week, always in a working state. 70% coverage on the paths the acceptance criteria touch, not 100%.
+
+**On honesty.** Never write `PASS` without a run behind it. `NOT RUN` is a valid, correct answer. A declared limitation scores; a hidden one gets found in the viva.
+
+---
+
+## Where things are
+
+| | |
+|---|---|
+| **The plan** | [docs/16-SOLO-EXECUTION-PLAN.md](docs/16-SOLO-EXECUTION-PLAN.md) — scope, cuts, slip rules |
+| Design reference (frozen) | [docs/](docs/README.md) 01–15 |
+| Sources and their terms | [docs/14](docs/14-DATA-SOURCE-GOVERNANCE.md) |
+| Languages, topics, regions, corpus | [docs/07 §4–5](docs/07-ML-DATASET-SPEC.md) |
+| The one interface that matters | `ml/predict.py::score_text` — frozen, do not change |
+
+```bash
+pytest                              # 86 tests
+python -m ingestion.check_sources   # are the feeds still alive?
+uvicorn backend.main:app --reload   # http://localhost:8000/api/v1/health
+```

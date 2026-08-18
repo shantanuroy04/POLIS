@@ -1,5 +1,15 @@
 # POLIS Documentation
 
+> ## ⚠ These documents are FROZEN design reference
+>
+> **Start at [`STATUS.md`](../STATUS.md) in the repository root.** That is the only file maintained week to week, and it carries the current state, the next tasks, and the eight genuinely open questions.
+>
+> Documents 01–15 below describe the system POLIS is *designed* as. They are complete, examiner-facing, and **no longer updated as work proceeds** — that ritual cost hours per week and produced no system. They change only when a design decision genuinely changes.
+>
+> [`16-SOLO-EXECUTION-PLAN.md`](16-SOLO-EXECUTION-PLAN.md) records what is actually *delivered*, and supersedes DOC-006 §3/§5/§6.
+>
+> The per-document open-item trackers below are **historical**. `STATUS.md` is authoritative.
+
 **Political Open Source Language Intelligence System** — a university Final Year Project. Not affiliated with the United Nations.
 
 This index is the map of the full documentation package. Read `01-PRD.md` first — it is the product source of truth every other document derives from. The dependency chain is:
