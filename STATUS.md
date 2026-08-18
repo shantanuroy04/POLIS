@@ -4,9 +4,9 @@
 
 | | |
 |---|---|
-| Today | Week 3 of 26 · target **31 Jan 2027** |
+| Today | **Week 4 of 26** · target **31 Jan 2027** |
 | Capacity | 1 person, ~9 h/week |
-| Tests | **86 passing**, CI green on `main` and `develop` |
+| Tests | **123 passing**, CI green on `main` and `develop` |
 | Repo | https://github.com/shantanuroy04/POLIS |
 
 ---
@@ -17,15 +17,11 @@ Three things, in order. Nothing else.
 
 | # | Task | Why now |
 |---|---|---|
-| **1** | **Cleaner** — strip HTML, NFKC normalise, flag truncation | The adapter deliberately stores raw. Nothing can be scored until this exists |
-| **2** | **Language detection** — `lingua`, confidence floor 0.60 | Every indicator groups by language |
-| **3** | **Dedupe** — SHA-256 exact + SimHash near-duplicate | UN News re-posts the same story across feeds. Without this the volume numbers lie |
+| **1** | **8 tables + Alembic migrations 0001–0004** | Everything built so far is in-memory. Nothing persists |
+| **2** | **SQLAlchemy models + repositories**, ingest writes rows | First time POLIS keeps anything |
+| **3** | **Decide TBD-20** — is the hostility corpus licence usable? | Gates Week 8. Deciding late costs more than deciding pessimistically |
 
-All three are Week 4 in the plan. All three are pure Python with no database — they run against `RawItem` and return a cleaned object.
-
-**Then** Week 5 is the database, and that is the next real milestone.
-
----
+Open [docs/05-BACKEND-SCHEMA.md](docs/05-BACKEND-SCHEMA.md) for the DDL. **Ignore the 15 tables you are not building.**
 
 ## Done
 
@@ -34,10 +30,21 @@ All three are Week 4 in the plan. All three are pure Python with no database —
 | 1 | Repo, CI, security headers, frozen `score_text` stub, design tokens | 36 tests, 3 CI gates green |
 | 2 | Decisions: languages, topics, regions, corpus. SSRF guard + guarded fetch | 73 tests |
 | 3 | RSS adapter, source registry, live source checker | 86 tests, 4 feeds parsing |
+| 4 | Cleaner, language detection, dedupe | **123 tests** |
 
-**Working right now:** `python -m ingestion.check_sources` fetches 4 real feeds and parses 110 items in 3 languages, through an SSRF-guarded, size-capped, rate-paced HTTP client.
+**The whole ingestion path runs end to end on real feeds:**
 
----
+```
+110 items   en 47 · ar 30 · fr 32 · other 1
+0 uncertain · 0 truncated · avg 718 chars cleaned
+```
+
+Feed → SSRF-guarded fetch → RSS parse → HTML stripped → NFKC normalised →
+language detected → fingerprinted. Nothing is stored yet; that is Week 5.
+
+> **Dedupe is not yet validated on real data.** A single poll contains no
+> duplicates, because duplication shows up *across* polls and across days. It
+> can only be measured once items persist — Week 5, and properly in Week 8.
 
 ## The decisions already made — do not reopen
 
@@ -81,7 +88,6 @@ Measure real volume in Weeks 5–8. If it is too thin: widen the window to 72 h,
 
 | Weeks | | Ends |
 |---|---|---|
-| 4 | Cleaner, language, dedupe | 30 Aug 2026 |
 | 5–6 | Database: 8 tables, migrations, models. **Decide TBD-20** | 13 Sep |
 | 7–8 | `pipeline_cycle` chained, running unattended 24 h | 27 Sep |
 | 9–10 | Backend: auth, audit, 10 endpoints | 11 Oct |
