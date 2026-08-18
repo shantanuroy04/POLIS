@@ -21,22 +21,40 @@ This is a live register. As Team A configures real sources (Implementation Plan 
 
 ## 2. Source Register
 
-**Demo languages: Arabic, English, French** ⟵ TBD-1, DOC-007 §4.1. Balance across the register: English ×4, Arabic ×2, French ×2.
+**Demo languages: Arabic, English, French** ⟵ TBD-1, DOC-007 §4.1. Balance across the register: English ×2, Arabic ×1, French ×1.
 
 Every feed below was probed on **2026-08-13** with POLIS's own User-Agent. All eight returned **HTTP 200** with an RSS content type. That is evidence of *availability*, and nothing more — it is not a terms check, and the two are recorded separately on purpose.
 
-| # | Source | Lang | Feed URL | Probed | Terms |
+| # | Source | Lang | Feed URL | Verified 2026-08-18 | Terms |
 |---|---|---|---|---|---|
-| S-01 | UN News — all news | `en` | `https://news.un.org/feed/subscribe/en/news/all/rss.xml` | 200 | **Read.** Reuse of news material permitted with credit given and the UN advised |
-| S-02 | UN News — all news | `ar` | `https://news.un.org/feed/subscribe/ar/news/all/rss.xml` | 200 | as S-01 |
-| S-03 | UN News — all news | `fr` | `https://news.un.org/feed/subscribe/fr/news/all/rss.xml` | 200 | as S-01 |
-| S-04 | UN News — peace & security | `en` | `https://news.un.org/feed/subscribe/en/news/topic/peace-and-security/rss.xml` | 200 | as S-01 |
-| S-05 | UN News — peace & security | `ar` | `https://news.un.org/feed/subscribe/ar/news/topic/peace-and-security/rss.xml` | 200 | as S-01 |
-| S-06 | UN News — Afrique | `fr` | `https://news.un.org/feed/subscribe/fr/news/region/afrique/rss.xml` | 200 | as S-01 |
-| S-07 | UN News — Middle East | `en` | `https://news.un.org/feed/subscribe/en/news/region/middle-east/rss.xml` | 200 | as S-01 |
-| S-08 | ReliefWeb (OCHA) | `en` | `https://reliefweb.int/updates/rss.xml` | 200 | **Partially read.** The API needs a pre-approved `appname` since 1 Nov 2025; **POLIS uses the RSS feed, not the API**, so it does not apply. Registration is mandatory before any switch |
+| S-01 | UN News — all news | `en` | `https://news.un.org/feed/subscribe/en/news/all/rss.xml` | **30 items parsed** | **Read.** Reuse of news material permitted with credit given and the UN advised |
+| S-02 | UN News — all news | `ar` | `https://news.un.org/feed/subscribe/ar/news/all/rss.xml` | **30 items parsed** | as S-01 |
+| S-03 | UN News — all news | `fr` | `https://news.un.org/feed/subscribe/fr/news/all/rss.xml` | **30 items parsed** | as S-01 |
+| S-04 | ReliefWeb (OCHA) — updates | `en` | `https://reliefweb.int/updates/rss.xml` | **20 items parsed** | **Partially read.** The API needs a pre-approved `appname` since 1 Nov 2025; **POLIS uses the RSS feed, not the API**, so it does not apply. Registration is mandatory before any switch |
 
-All eight probed 2026-08-13 with POLIS's own User-Agent, each returning 200 with an RSS content type.
+**110 items per poll across 3 languages.** Verified by an actual parse, not a status code — `python -m ingestion.check_sources`.
+
+### 2.0.4 Four feeds were removed because HTTP 200 is not evidence of content
+
+The register briefly held eight feeds. Four were UN News topic and region feeds — peace-and-security in English and Arabic, Afrique in French, Middle East in English — added after a probe showed each returning **200 with an `application/rss+xml` content type**.
+
+The first live run through the adapter showed all four return **an empty body**. Every alternate URL pattern tried returns the same. UN News appears to publish only its `.../news/all/...` feeds with content.
+
+This is the same mistake as trusting `robots.txt` for a licence, one layer down: **a status code is evidence that a server answered, not that it answered with anything.** The probe checked the cheap thing and the register recorded it as if it were the expensive thing.
+
+`ingestion/check_sources.py` exists so this cannot recur silently. It fetches every registered source through the real adapter and reports item counts. It is deliberately **not** a CI test — it needs the network, and a security-and-governance check that fails on a flaky connection is a check that gets muted. Run it when adding a source, and before the demo ⟵ GOV-10.
+
+### 2.0.5 Consequence: item volume is now a live risk
+
+Four sources instead of eight, and UN News publishes roughly 30 items per feed per poll with substantial overlap between polls. Realistic yield is on the order of **50–100 genuinely new items per day across all three languages.**
+
+The indicators divide that further — by language, by region, by 24-hour window — before comparing against a 14-day baseline. **The `n_min` gates in PRD §10 were sized for a corpus with eight sources.** They may now suppress every indicator, which would be a correct refusal by the system and a useless demo.
+
+This is recorded now rather than discovered in Week 17:
+
+- Measure real daily volume per language and per region during Weeks 5–8, when the pipeline is running unattended ⟵ **TBD-11** already owns the `n_min` values
+- If volume is too thin, the honest responses are to widen the window from 24 h to 72 h, or to compute at macro-region rather than subregion granularity — **not** to lower `n_min` until something fires
+- GOV-11 (a non-UN publisher) is now a volume issue as well as a bias issue
 
 ### 2.0.0 France 24 was removed after its terms were read
 
@@ -52,13 +70,12 @@ POLIS collects, stores for 180 days, and operates a software system over that co
 
 ### 2.0.2 Known limitation: publisher concentration
 
-Seven of the eight feeds are UN News. That is a **real weakness in the corpus and it is declared, not hidden**: an early-warning system reading mainly the UN's own reporting inherits the UN's framing, its story selection, and its silences. Sentiment measured across those feeds says something narrower than "sentiment in the region".
+Three of the four feeds are UN News. That is a **real weakness in the corpus and it is declared, not hidden**: an early-warning system reading mainly the UN's own reporting inherits the UN's framing, its story selection, and its silences. Sentiment measured across those feeds says something narrower than "sentiment in the region".
 
 It is the honest consequence of the constraint, and the constraint is itself a finding worth reporting: **most commercial news publishers explicitly prohibit the automated collection and storage that any monitoring system requires.** That is why real systems in this space license content or use aggregators such as GDELT rather than reading feeds directly. A ₹0 budget removes both options.
 
 Mitigations actually applied:
 
-- Topic and region feeds are used alongside all-news feeds, so story selection is at least varied within the publisher
 - ReliefWeb brings a second organisation, and an operational rather than editorial voice
 - DOC-008 and the FYP report must state this limitation next to any per-region or per-language finding
 - **GOV-11** tracks finding at least one non-UN publisher with compatible terms
@@ -143,7 +160,7 @@ Any new source category proposed after this document's baseline must be checked 
 | GOV-5 | Confirm `robots.txt` before first fetch | **PARTIAL.** Read and recorded for france24.com, feeds.bbci.co.uk, reliefweb.int. news.un.org returned no directives — re-check whether the file is absent or the request was refused | You, Week 3 |
 | ~~GOV-6~~ | Confirm Telegram channels genuinely public | **CLOSED — descoped.** No Telegram adapter in the solo scope | 2026-08-13 |
 | GOV-7 | Design a takedown-request handling procedure | **OPEN.** Cheaper now than under pressure. A source asking for removal must have a documented path even though none has asked | You, Week 5 |
-| ~~GOV-8~~ | Populate §2 with ≥ 8 real sources | **CLOSED.** Eight named feeds in §2, each probed and recorded | 2026-08-13 |
+| GOV-8 | Populate §2 with ≥ 8 real sources | **REOPENED 2026-08-18.** Eight were listed; four proved empty (§2.0.4) and three more were removed on terms (§2.0.0). **Four sources are live.** PRD's ≥ 8 target is not met and will not be met from UN-family sources alone | You, with GOV-11 |
 | GOV-9 | Read the France 24 and BBC terms of service ⟵ TBD-21 | **HALF CLOSED 2026-08-13. France 24: read, and it forbids exactly what POLIS does — all three feeds removed (§2.0.0). BBC: `bbc.co.uk` refuses automated fetch, terms unread, so BBC Arabic is not ingested (§2.0.3).** `robots.txt` said yes and the licence said no, which is the whole reason this item existed | BBC half open — You, before adding it |
 | **GOV-11** | Find at least one non-UN publisher with terms compatible with automated collection and 180-day storage | **OPEN.** Seven of eight feeds are UN News (§2.0.2). Candidates worth checking: VOA (US federal material is public domain, but AFP/AP/Reuters content is mixed in and is not), other UN-family agencies, and openly licensed outlets. Do not add any of them on the strength of `robots.txt` | You, **before Week 20** |
 | **GOV-10** | Re-verify all eight feeds before the demo | **OPEN.** A feed URL that worked in Week 2 is not evidence it works in Week 15 | You, Week 15 |
