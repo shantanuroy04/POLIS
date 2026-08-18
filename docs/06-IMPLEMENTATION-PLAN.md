@@ -39,7 +39,7 @@ Success is defined by PRD §23 MVP Release Criteria. Nothing beyond that list is
 
 > ## ⚠ SUPERSEDED — the project has one developer, not six
 >
-> This section, §5 and §6 assume six people. The actual team is **one person working 9 hours a week**, which is a 30× gap: 3,840 planned hours against 126 available. **[DOC-016 Solo Execution Plan](16-SOLO-EXECUTION-PLAN.md) is the plan that is executed.** It cuts scope by ~90% and gives a 14-week schedule that fits ~126 hours at 9 h/week.
+> This section, §5 and §6 assume six people. The actual team is **one person working 9 hours a week over 6 months**, which is an 18× gap: 3,840 planned hours against 216 available. **[DOC-016 Solo Execution Plan](16-SOLO-EXECUTION-PLAN.md) is the plan that is executed.** It cuts scope by ~85% and gives a 24-week schedule that fits ~216 hours at 9 h/week.
 >
 > Nothing below is deleted. It remains the plan this project was *designed* against, and DOC-016 §3.2 records every deferred item and its reason. Read this section as design intent; read DOC-016 as delivery.
 
