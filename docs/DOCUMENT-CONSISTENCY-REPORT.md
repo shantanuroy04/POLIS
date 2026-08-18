@@ -147,13 +147,13 @@ ADR-002, 004, 005, 008, 009, 010, 012, 013, 014, 015 — each traced to a source
 
 ## 7. Consolidated Open-Items Tracker
 
-**21 open items** (20 from v1.0 + TBD-16 introduced by the F-5 correction). None closed by assumption.
+**21 open items at v2.0. As of 2026-08-13: 9 closed, 3 opened, 15 open.** Nine closures are recorded below — three are genuine resolutions (TBD-1/2/3), five are descopes under DOC-016 marked *descoped, not verified*, and one is completed work (GOV-8). **A descope is never recorded as a pass.** Three new items were opened by the same work (TBD-18 resolved, TBD-20 and TBD-21 open).
 
 | ID | Item | Origin | Owner | Due |
 |---|---|---|---|---|
-| TBD-1 | Demo language set | PRD App. B / Doc 07 §4 | B1 | Week 3 |
-| TBD-2 | Topic taxonomy (12–20) | PRD App. B | A1 + B2 | Week 3 |
-| TBD-3/14 | Region taxonomy + source→region map | PRD App. B / TRD §18 | A1 | Week 3 |
+| ~~TBD-1~~ | **RESOLVED 2026-08-13 — Arabic, English, French.** Doc 07 §4.1 | Doc 07 §4.1 | — | closed |
+| ~~TBD-2~~ | **RESOLVED 2026-08-13 — 16 multi-label topics + `other`.** Doc 07 §4.2 | Doc 07 §4.2 | — | closed |
+| ~~TBD-3/14~~ | **RESOLVED 2026-08-13 — UN M49, two levels, assigned from content not source.** Doc 07 §4.3 | Doc 07 §4.3 | — | closed |
 | TBD-4 | Stance classification survival | PRD App. B / Doc 07 §2 | B1 | Week 7 |
 | TBD-5 | Viable compliant X/Twitter path | PRD App. B / Doc 14 §2.1 | A1 | Week 3 |
 | TBD-6/13 | Syndication collapsing list (IND-03) | PRD App. B / TRD §18 | A1 | Week 8 |
@@ -165,14 +165,17 @@ ADR-002, 004, 005, 008, 009, 010, 012, 013, 014, 015 — each traced to a source
 | TBD-12 | JWT HS256 vs RS256 | TRD §18 | C1 | Week 6 |
 | TBD-15 | Enable RLS vs RBAC-only | DB §11.2 | C1 | Week 10 |
 | **TBD-16** | **§11.1 latency preconditions: items/cycle ≤ 100 **and** measured throughput near NFR-1.3 not the NFR-1.4 floor** | **PRD §11.1 (F-5, F-8)** | **A1 + C1** | **Phase 3 benchmark + Phase 7 timing** |
-| GOV-1 | Verify LIAR licence | Doc 14 §5 | B1 | Week 2 |
-| GOV-2 | Verify FakeNewsNet re-scrape terms | Doc 14 §5 | B1 | Week 2 |
-| GOV-3 | Select + verify Kaggle corpus licence | Doc 14 §5 | B1 | Week 2 |
-| GOV-4 | Verify NLLB-200 vs opus-mt licence | Doc 14 §5 | A2 | Week 5 |
+| ~~GOV-1~~ | **CLOSED — descoped, not verified** (disinfo head cut) | Doc 14 §5 | — | closed |
+| ~~GOV-2~~ | **CLOSED — descoped, not verified** | Doc 14 §5 | — | closed |
+| ~~GOV-3~~ | **CLOSED — descoped, not verified** | Doc 14 §5 | — | closed |
+| ~~GOV-4~~ | **CLOSED — descoped** (translation layer cut) | Doc 14 §5 | — | closed |
 | GOV-5 | Confirm `robots.txt` per source | Doc 14 §5 | A1 | Weeks 2–3, ongoing |
-| GOV-6 | Confirm Telegram channels genuinely public | Doc 14 §5 | A2 | Week 4 |
+| ~~GOV-6~~ | **CLOSED — descoped** (no Telegram adapter) | Doc 14 §5 | — | closed |
 | GOV-7 | Design takedown-request procedure | Doc 14 §5 | A1 + C1 | Week 5 |
-| GOV-8 | Populate Doc 14 §2 with real sources | Doc 14 §5 | A1 + A2 | Week 5 |
+| ~~GOV-8~~ | **CLOSED — eight feeds named and probed** | Doc 14 §2 | — | closed |
+| **TBD-18** | **RESOLVED 2026-08-13 — `cardiffnlp/tweet_sentiment_multilingual`, CC BY 3.0 + Twitter ToS, terms read** | Doc 07 §5 | — | closed |
+| **TBD-20** | **Hostility corpus licence NOT verified.** The CC BY 4.0 found covers the SemEval *paper*, not the data | Doc 07 §5 | You | **blocks Week 8** |
+| **TBD-21** | **France 24 and BBC terms of service not read.** `robots.txt` is a crawling rule, not a licence | Doc 14 §2, GOV-9 | You | **blocks first ingest, Week 3** |
 
 ---
 
@@ -194,12 +197,12 @@ ADR-002, 004, 005, 008, 009, 010, 012, 013, 014, 015 — each traced to a source
 | 12 | TRD → Deployment | Doc 11 §6 vs TRD §10.1; **new**: verified deployment does not contradict single-instance chained scheduler | **PASS** — sleep-vs-latency conflict now explicitly documented |
 | 13 | PRD/TRD → ADR | Every ADR status vs its source document's decision label | **PASS after correction** — 4 statuses changed (§5.1) |
 | 14 | Implementation Plan → all docs | Impl §11.1 register covers 01–15 + supporting | **PASS** — F-4 closed |
-| 15 | All TBDs traceable | 21 items, each with origin/owner/due (§7) | **PASS** |
+| 15 | All TBDs traceable | 21 items at v2.0; **re-checked 2026-08-13**: 9 closed, 3 opened, 15 open, each with origin/owner/due (§7) | **PASS** |
 | 16 | No fabricated evidence | `grep -cE "\| PASS \|"` on Docs 09/13 → **0** and **0**; all metric cells `NOT RUN` | **PASS** |
 | 17 | No Accepted ADR silently resolves a TBD | §5.1 corrections; §5.3 confirms no ADR written for TBD-12/TBD-15 | **PASS after correction** |
 | 18 | 20-min latency mathematically demonstrable | §4.2 — 16.0 ≤ 20.0, margin 4.0, preconditions stated | **PASS after correction** |
 | 19 | Scheduled-batch terminology accurate | `grep -i "real.?time\|continuous"` across all docs; all surviving uses either *disclaim* streaming or were corrected (F-9) | **PASS** |
-| 20 | Documentation status matches repository state | `find` → repository contains only `docs/`; every implementation-status claim in Docs 08/09/10/11/13 says NOT RUN / NOT IMPLEMENTED / NOT TESTED / NOT EXECUTED | **PASS** |
+| 20 | Documentation status matches repository state | **STALE AS WRITTEN, re-run 2026-08-13.** The v2.0 claim “repository contains only `docs/`” was true then and is false now: Weeks 1–2 added the scaffold, the frozen `score_text` stub, the SSRF guard and the guarded fetch layer — 73 tests, CI green. Docs 08/09/10/11/13 still carry NOT RUN / NOT IMPLEMENTED / NOT TESTED / NOT EXECUTED, which remains correct: no model is trained, no ASVS control is tested, no endpoint beyond `/health` exists | **PASS on re-run** — the row is corrected rather than left asserting something untrue |
 
 ---
 

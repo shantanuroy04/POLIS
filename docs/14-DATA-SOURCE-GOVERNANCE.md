@@ -11,7 +11,7 @@
 | Document ID | POLIS-DOC-014 |
 | Version | 1.0 |
 | Date | 11 August 2026 |
-| Status | Draft — source **categories** and governance rules are confirmed; specific named source instances are `[TBD]`, owned by Team A per the Implementation Plan |
+| Status | **Live — eight named feeds recorded in §2**, each probed 2026-08-13. Two terms checks remain open (GOV-9/TBD-21) and block first ingest |
 | Owner | Team A (Data/Ingestion) |
 | Derives from | POLIS-PRD-001 §9 FR-1.x (ingestion), §13 (PRIV-1…PRIV-13); POLIS-TRD-002 §5.1–5.2 (source adapters, SSRF guard); POLIS-DB-005 §5.2 (`sources` table) |
 
@@ -21,18 +21,38 @@ This is a live register. As Team A configures real sources (Implementation Plan 
 
 ## 2. Source Register
 
-| Source | Type | Public? | Access method | Terms/Licence | robots.txt checked | Rate limit | Data collected | Retention | Risk | Owner |
-|---|---|---|---|---|---|---|---|---|---|---|
-| International wire service (e.g. Reuters World, AP) | RSS/Atom | Yes | `feedparser` polling | Publisher's public RSS terms — **[TBD]** verify no-scrape clause doesn't apply to RSS itself before adding | **[TBD]** — Team A, Week 2 | 10 min poll interval (config default, PRD FR-1.2) | Headline, body (where feed provides it), publish time, URL | 180 days (raw), per PRD PRIV-4 | Low — designed-for-syndication feed | Team A |
-| Regional/language news outlet (e.g. Al Jazeera language editions) | RSS/Atom | Yes | `feedparser` polling | **[TBD]** per-outlet verification | **[TBD]** | 10 min | Same as above | 180 days | Low | Team A |
-| Government/official statement page | HTML (no RSS) | Yes | `ingestion/sources/html_page.py`, guarded fetch | Public government communications — generally no restrictive ToS, but **[TBD]** verify per page | **[TBD]** | 15–60 min (slower-changing) | Statement text, publish time (if available), URL | 180 days | Low–Medium — page structure changes break the parser, not a legal risk | Team A |
-| Public Telegram channel | Telegram (Telethon, public channel read) | Yes — **public channels only, never groups or private chats** | Telethon user-API, read-only | Telegram ToS — public channel content is intended for open distribution; **[TBD]** confirm the specific channels selected are genuinely public and not access-gated | N/A (not a web crawl) | Telethon's own API rate limits | Message text, author public handle (channel-post attribution only), timestamp | 180 days | Medium — channel could be deleted/go private after being added; content moderation varies by channel operator | Team A |
-| Public subreddit | Reddit (PRAW) | Yes | Reddit's official free API via PRAW | Reddit API terms — free tier for research/personal, non-commercial academic use | N/A (official API) | PRAW-managed, Reddit's published limits | Post title/body, public username, timestamp, subreddit | 180 days | Low–Medium — public usernames are collected as they are intrinsic to the post; no cross-referencing performed ⟵ PRIV-2, PRIV-3 | Team A |
-| LIAR dataset | Public research dataset | Yes | Direct download, archived locally | **[TBD]** — verify licence permits this specific academic use before training (POLIS-DOC-007 §5) | N/A | N/A (one-time download) | Pre-existing labelled text, not live-collected | Retained for project duration as training data | Low | Team B |
-| FakeNewsNet | Public research dataset | Yes | Direct download / re-scrape of linked articles, archived locally | **[TBD]** — components may be link-only, subject-ToS applies to re-scraped articles | N/A | N/A | Pre-existing labelled text/links | Retained for project duration | Low–Medium (re-scraped components inherit the source site's terms) | Team B |
-| Kaggle fake-news corpus | Public research dataset | Yes | Direct download | **[TBD]** — per-dataset Kaggle licence, not yet selected | N/A | N/A | Pre-existing labelled text | Retained for project duration | Low | Team B |
-| `xlm-roberta-base` | Hugging Face Hub model | Yes | `transformers` library download | MIT | N/A | N/A | N/A — model weights, not data | Permanent (model artefact) | Low | Team B |
-| `opus-mt` / NLLB-200-distilled | Hugging Face Hub model | Yes | `transformers` library download | CC-BY-4.0 (opus-mt) / **[TBD]** verify NLLB variant licence before selecting it over opus-mt | N/A | N/A | N/A | Permanent | Low, pending licence confirmation | Team A |
+**Demo languages: Arabic, English, French** ⟵ TBD-1, DOC-007 §4.1.
+
+Every feed below was probed on **2026-08-13** with POLIS's own User-Agent. All eight returned **HTTP 200** with an RSS content type. That is evidence of *availability*, and nothing more — it is not a terms check, and the two are recorded separately on purpose.
+
+| # | Source | Lang | Feed URL | Reachable 2026-08-13 | robots.txt | Terms status |
+|---|---|---|---|---|---|---|
+| S-01 | UN News | `en` | `https://news.un.org/feed/subscribe/en/news/all/rss.xml` | 200 `application/rss+xml` | No directives returned for the host | **Read.** UN permits reuse of news material with credit given and the UN advised; general site terms grant personal, non-commercial use without redistribution |
+| S-02 | UN News | `ar` | `https://news.un.org/feed/subscribe/ar/news/all/rss.xml` | 200 `application/rss+xml` | as S-01 | as S-01 |
+| S-03 | UN News | `fr` | `https://news.un.org/feed/subscribe/fr/news/all/rss.xml` | 200 `application/rss+xml` | as S-01 | as S-01 |
+| S-04 | France 24 | `en` | `https://www.france24.com/en/rss` | 200 `application/rss+xml` | **Read.** `User-agent: *` → `Disallow:` (nothing disallowed). Named AI-training crawlers are blocked individually | **[TBD-21]** — ToS not read |
+| S-05 | France 24 | `fr` | `https://www.france24.com/fr/rss` | 200 `application/rss+xml` | as S-04 | **[TBD-21]** |
+| S-06 | France 24 | `ar` | `https://www.france24.com/ar/rss` | 200 `application/rss+xml` | as S-04 | **[TBD-21]** |
+| S-07 | BBC Arabic | `ar` | `https://feeds.bbci.co.uk/arabic/rss.xml` | 200 `text/xml` | **Read.** Disallow list does not cover the feed path | **[TBD-21]** — ToS not read |
+| S-08 | ReliefWeb (OCHA) | `en` | `https://reliefweb.int/updates/rss.xml` | 200 `application/rss+xml` | **Read.** No rule blocking the feed path | **Partially read.** The public API is free but requires a pre-approved `appname` since 1 Nov 2025 (1,000 calls/day). **POLIS uses the RSS feed, not the API**, so the appname requirement does not currently apply — if that changes, registration is mandatory before the switch |
+
+Balance: Arabic ×3, English ×3, French ×2. No single publisher exceeds three feeds, so one outlet's editorial line cannot dominate a language.
+
+### 2.0 What is collected, and why that bounds the licence question
+
+**Only what the feed itself syndicates** — title, summary/description, publish time, link. POLIS does **not** follow the link and scrape the full article body for these sources.
+
+This is a governance decision, not a technical shortcut. An RSS summary is content the publisher deliberately syndicated for machine consumption; a scraped article body is not. Restricting collection to the feed payload keeps POLIS inside the narrow, defensible use every one of these publishers already invites, and removes the "no systematic reproduction" clause that a full-text scrape would run straight into.
+
+Retention stays 180 days for raw content (PRIV-4). Nothing collected is republished — the UI is private to project members and evaluators, and the corpus is never committed to the public repository.
+
+### 2.0.1 France 24 and the AI-crawler question
+
+France 24's `robots.txt` permits `User-agent: *` but individually blocks a long list of named AI-training crawlers (`AI2Bot`, `AlibabaBot`, and others). POLIS's User-Agent is not on that list, and the generic rule permits access.
+
+The signal is still worth reading honestly: that publisher does not want its content used to train models. **POLIS does not train on it.** Training data is the Cardiff NLP corpus (DOC-007 §5); France 24 content is inference input and is never written into a training set. The distinction is real, and it is recorded here rather than left to be assumed.
+
+If that ever stops being true — if any ingested content is used for training — these sources must be re-evaluated first.
 
 ### 2.1 What Is Deliberately Absent From This Table
 
@@ -90,16 +110,18 @@ Any new source category proposed after this document's baseline must be checked 
 
 ## 5. Open Items
 
-| ID | Item | Owner | Due |
+| ID | Item | Status / Resolution | Owner + due |
 |---|---|---|---|
-| GOV-1 | Verify LIAR licence permits this academic use | B1 | Week 2 |
-| GOV-2 | Verify FakeNewsNet re-scrape components' source-site terms | B1 | Week 2 |
-| GOV-3 | Select and verify the specific Kaggle fake-news corpus and its licence | B1 | Week 2 |
-| GOV-4 | Verify NLLB-200 licence vs opus-mt before selecting a translation model | A2 | Week 5 |
-| GOV-5 | Confirm `robots.txt` status for every RSS/HTML source before first fetch | A1 | Week 2–3 (per source, ongoing) |
-| GOV-6 | Confirm selected Telegram channels are genuinely public, not access-gated | A2 | Week 4 |
-| GOV-7 | Design a concrete takedown-request handling procedure, even though none has been requested yet | A1 + C1 | Week 5 |
-| GOV-8 | Populate §2 with the actual ≥ 8 sources once selected (currently category-level only) | A1 + A2 | Week 5 |
+| ~~GOV-1~~ | Verify LIAR licence | **CLOSED — descoped, not verified.** The disinfo head is cut in DOC-016 §3.2, so the dataset is unused and no licence check is owed. Recorded as descoped rather than passed, because "verified" would be a false claim | 2026-08-13 |
+| ~~GOV-2~~ | Verify FakeNewsNet re-scrape terms | **CLOSED — descoped, not verified.** Same reason | 2026-08-13 |
+| ~~GOV-3~~ | Select and verify a Kaggle fake-news corpus | **CLOSED — descoped, not verified.** Same reason | 2026-08-13 |
+| ~~GOV-4~~ | Verify NLLB-200 vs opus-mt licence | **CLOSED — descoped.** The translation layer is cut in DOC-016 §3.2; language is detected, never translated | 2026-08-13 |
+| GOV-5 | Confirm `robots.txt` before first fetch | **PARTIAL.** Read and recorded for france24.com, feeds.bbci.co.uk, reliefweb.int. news.un.org returned no directives — re-check whether the file is absent or the request was refused | You, Week 3 |
+| ~~GOV-6~~ | Confirm Telegram channels genuinely public | **CLOSED — descoped.** No Telegram adapter in the solo scope | 2026-08-13 |
+| GOV-7 | Design a takedown-request handling procedure | **OPEN.** Cheaper now than under pressure. A source asking for removal must have a documented path even though none has asked | You, Week 5 |
+| ~~GOV-8~~ | Populate §2 with ≥ 8 real sources | **CLOSED.** Eight named feeds in §2, each probed and recorded | 2026-08-13 |
+| **GOV-9** | Read the France 24 and BBC terms of service ⟵ **TBD-21** | **OPEN.** `robots.txt` is a crawling rule, not a licence, and treating one as the other is the error GOV exists to catch | You, **before first ingest — Week 3** |
+| **GOV-10** | Re-verify all eight feeds before the demo | **OPEN.** A feed URL that worked in Week 2 is not evidence it works in Week 15 | You, Week 15 |
 
 This tracker feeds the consolidated open-items list in `DOCUMENT-CONSISTENCY-REPORT.md` — items are not duplicated with different wording in both places; this table is authoritative for governance-specific items.
 

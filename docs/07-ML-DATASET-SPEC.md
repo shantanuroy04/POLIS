@@ -85,19 +85,80 @@ No dataset has been assembled yet. This section specifies the *plan*; Document 8
 | Field | Planned value | Status |
 |---|---|---|
 | Dataset name | `polis-multilingual-v1` (working name) | [PROPOSED] |
-| Sources | LIAR, FakeNewsNet, Kaggle fake-news corpus, team-labelled multilingual set | [CONFIRMED] — PRD §5 free-tier stack |
-| Purpose | Fine-tune the multi-head XLM-R classifier (sentiment, hostility, disinfo, stance) | [CONFIRMED] |
-| Languages | **[TBD]** — Team B fixes by Week 3 ⟵ PRD TBD-1, NFR-12.3. Proposed: English, Arabic, French, + 1 more based on data availability | [PROPOSED] |
-| Total records | **[TBD]** — target ≥ 800 team-labelled items (PRD A-5) plus the public corpora's native sizes | [TBD] |
+| Sources | **`cardiffnlp/tweet_sentiment_multilingual`**, restricted to the three demo languages ⟵ TBD-18 | **[CONFIRMED]** — see §5, replaces the LIAR/FakeNewsNet/Kaggle plan |
+| Purpose | Fine-tune XLM-R for **sentiment and hostility only**. Disinfo and stance return `not_applicable` ⟵ DOC-016 §3.2 | **[CONFIRMED]** |
+| Languages | **Arabic, English, French** ⟵ **TBD-1 RESOLVED** | **[CONFIRMED]** — see §4.1 |
+| Total records | **5,514 train / 969 validation / 2,607 test** — 1,838 / 323 / 869 per language × 3. Stated by the dataset card, **not yet verified by download** | [PROPOSED] until downloaded |
 | Label distribution | **[TBD]** — cannot be reported before labelling | [TBD] |
 | Train/val/test split | 70/15/15, stratified by label **and** language, split by `cluster_id` not by row | [CONFIRMED] — TRD §7.3 |
 | Preprocessing | NFKC normalise, casing/diacritics preserved for model input, folded copy used only for hashing | [CONFIRMED] — TRD §5.3 |
 | Deduplication before split | Exact hash + SimHash clustering; split occurs at the cluster level to prevent leakage | [CONFIRMED] — TRD §7.3 |
 | Class balancing | Class-weighted loss; no oversampling/SMOTE planned (text-space SMOTE is unreliable) | [PROPOSED] |
-| Augmentation | None planned for MVP | [CONFIRMED] — not attempted; back-translation considered only if minority-class recall (SM-5) is unmet | [FUTURE] if needed |
+| Augmentation | None planned for MVP; back-translation considered only if minority-class recall (SM-5) is unmet | [CONFIRMED] — not attempted |
 | Known limitations | English-centric source corpora; disinformation label questionable outside the training domain | [CONFIRMED] — see §11 |
 
-No dataset statistic in this table beyond what is stated is invented. Row counts, exact label ratios, and per-language counts are populated in Document 8 once labelling (Weeks 2–6) and the split (Week 4) are complete.
+No dataset statistic in this table beyond what is stated is invented. Per-language counts above come from the published dataset card and are marked `[PROPOSED]` until a download confirms them; Document 8 reports the actuals.
+
+### 4.1 Demo Languages **[CONFIRMED — TBD-1 resolved]**
+
+**Arabic (`ar`), English (`en`), French (`fr`).**
+
+| Reason | Detail |
+|---|---|
+| Corpus coverage | All three are in `cardiffnlp/tweet_sentiment_multilingual` with equal splits, so no language is a second-class citizen in training |
+| Source coverage | All three are carried by every source in DOC-014 §2 — one publisher, three languages, comparable editorial standards |
+| Domain fit | All three are UN official languages and the working languages of the SPM contexts POLIS models |
+| Script diversity | Arabic exercises RTL rendering, non-Latin script, and diacritic handling — the cases a Latin-only demo would never hit |
+
+Rejected: Spanish and Portuguese (in the corpus, but weaker source coverage in SPM contexts); Hindi (corpus coverage, but no matching feed in DOC-014 §2); Swahili (strong SPM fit, **absent from the corpus** — the corpus constrains the language set, not the other way round).
+
+**Known gap:** the hostility head has no French training data (§5). French hostility relies on cross-lingual transfer and must be reported separately in DOC-008, never averaged into a single hostility score.
+
+### 4.2 Topic Taxonomy **[CONFIRMED — TBD-2 resolved]**
+
+16 topics, multi-label. Within the 12–20 band PRD Appendix B requires.
+
+| # | Topic | Covers |
+|---|---|---|
+| T-01 | Security & armed conflict | Armed clashes, attacks, military operations, ceasefires |
+| T-02 | Elections & political process | Campaigns, voting, results, electoral disputes |
+| T-03 | Governance & institutions | Cabinets, parliaments, appointments, constitutional change |
+| T-04 | Justice & rule of law | Courts, prosecutions, detention, legal reform |
+| T-05 | Human rights | Abuses, investigations, civil liberties, minority rights |
+| T-06 | Humanitarian & displacement | Refugees, IDPs, aid access, camps |
+| T-07 | Public health | Outbreaks, health systems, vaccination |
+| T-08 | Economy & livelihoods | Inflation, unemployment, currency, fuel, strikes over pay |
+| T-09 | Food & water security | Shortage, famine risk, drought, agricultural failure |
+| T-10 | Communal & sectarian relations | Ethnic, religious and communal tension between groups |
+| T-11 | Protest & civil unrest | Demonstrations, riots, crackdowns, curfews |
+| T-12 | Foreign relations & diplomacy | Bilateral relations, sanctions, negotiations, treaties |
+| T-13 | Peace operations & mission activity | Peacekeeping, political missions, mandates, mediation |
+| T-14 | Media & information environment | Press freedom, disinformation campaigns, internet shutdowns |
+| T-15 | Corruption & accountability | Graft allegations, audits, asset recovery |
+| T-16 | Climate & environment | Extreme weather, environmental degradation, resource disputes |
+| — | `other` | Everything else. Not a topic — the tail, kept explicit so charts never invent a 17th colour ⟵ UX §6.1 |
+
+Design notes, because each is a decision someone will question:
+
+- **Multi-label, not single-label.** "Protest over fuel prices met by police" is T-08, T-11 and plausibly T-01. Forcing one label would destroy the co-occurrence signal IND-04 depends on.
+- **Topics are subject-matter, not sentiment.** T-14 covers *reporting about* disinformation. It does **not** mean POLIS judged the item false — that would collapse the PRD §10.6 boundary.
+- **No actor, party, or country is a topic.** Those are entities (§3) and regions (§4.3). Making "Party X" a topic would bake a political frame into the label space.
+- **`other` is expected to be large early** and is a measurement, not a failure. A high `other` rate is reported, not hidden ⟵ DOC-008.
+
+### 4.3 Region Taxonomy **[CONFIRMED — TBD-3 resolved]**
+
+**UN M49 standard, two levels.** POLIS does not invent political geography — drawing region boundaries is itself a political act, and adopting the UN's own published scheme keeps that judgement out of the system.
+
+| Level | Values | Use |
+|---|---|---|
+| Macro | Africa, Americas, Asia, Europe, Oceania | Dashboard grouping, chart facets |
+| Sub | The M49 subregions (Northern Africa, Western Asia, Eastern Africa, …) | Indicator baselines, alert scoping |
+| Special | `global` | Content with no regional anchor — treaties, UN-wide statements |
+| Special | `unassigned` | No GPE entity resolved. Explicit, never silently bucketed into `global` |
+
+**Region comes from content, not from the source.** A French-language item from a Paris newsroom about Mali is a *Western Africa* item. Assignment is: resolve GPE entities (§3) → map to M49 → take the most frequent; ties and empty results become `unassigned`.
+
+This deliberately reverses PRD TBD-14's "source→region map". Mapping by source would mean every item from a given outlet carried that outlet's region, which is wrong often enough to corrupt any per-region baseline. **The source→region field is retained only as a display hint, never as an indicator input.**
 
 ---
 
@@ -105,15 +166,24 @@ No dataset statistic in this table beyond what is stated is invented. Row counts
 
 | Dataset | Source | URL | License | Task | Language | Version/Date | Usage |
 |---|---|---|---|---|---|---|---|
-| LIAR | William Yang Wang, UCSB | github.com/tfs4/liar_dataset (canonical: UCSB) | Research/academic use — **[TBD — verify exact licence terms before use, Week 2]** | Disinformation/truthfulness | English | 2017 release | Base training data, disinfo head |
-| FakeNewsNet | Shu et al. | github.com/KaiDMML/FakeNewsNet | Research use, **subject to Twitter/PolitiFact/GossipCop ToS at collection time — [TBD] verify current availability, some components may be link-only and require re-scraping** | Disinformation | English | 2018–2020 collection | Base training data, disinfo head |
-| Kaggle fake-news corpus | Kaggle community | kaggle.com (specific dataset **[TBD]** — not yet selected) | Per-dataset Kaggle licence — **[TBD] verify at selection time** | Disinformation | English | [TBD] | Supplementary disinfo data |
-| Team-labelled multilingual set | POLIS team, Weeks 2–6 | Internal, `ml/data/` (gitignored) | Original annotation of public content collected under PRD PRIV-1 | Sentiment, hostility, stance | **[TBD]** per §4 | Created 2026 | Primary multilingual signal |
+| **`cardiffnlp/tweet_sentiment_multilingual`** | Cardiff NLP (Barbieri et al., UMSAB) | huggingface.co/datasets/cardiffnlp/tweet_sentiment_multilingual | **CC BY 3.0**, plus a stated requirement to comply with Twitter Terms of Service and Twitter API Terms — read from the dataset card 2026-08-13 | Sentiment (negative/neutral/positive) | 8 languages; POLIS uses `ar`, `en`, `fr` | 2022 release | **Primary training data, sentiment head** |
+| Hostility corpus | **[TBD-20]** — OffensEval 2020 / MOLID (SemEval-2020 Task 12) is the leading candidate | aclanthology.org/2020.semeval-1.188 | **NOT VERIFIED.** The CC BY 4.0 found applies to the *paper*; the data distribution terms are a separate document and have not been read. Treating a paper licence as a data licence is exactly the error GOV checks exist to catch | Offensive / not offensive | `ar`, `en` (+ da, el, tr unused). **No French** | 2020 | Training data, hostility head — **blocks Week 8** |
+| ~~LIAR~~ | — | — | **Superseded, not verified.** The disinfo head is descoped in DOC-016 §3.2, so no licence check is owed. Closing GOV-1 as "verified" would be false | — | — | — | Not used |
+| ~~FakeNewsNet~~ | — | — | **Superseded** — same reason. GOV-2 closed as descoped | — | — | — | Not used |
+| ~~Kaggle fake-news corpus~~ | — | — | **Superseded** — same reason. GOV-3 closed as descoped | — | — | — | Not used |
+| ~~Team-labelled multilingual set~~ | — | — | **Superseded.** DOC-016 §4.1 replaces hand-labelling with fine-tuning on an existing corpus; ~40 h of labelling does not fit a one-person plan | — | — | — | Not used |
 | `xlm-roberta-base` | Facebook AI / Hugging Face | huggingface.co/xlm-roberta-base | MIT | Base encoder, all heads | ~100 languages | Public release | Fine-tuning base |
 | `Helsinki-NLP/opus-mt-*` or NLLB-200-distilled-600M | Helsinki-NLP / Meta | huggingface.co | CC-BY-4.0 (opus-mt) / CC-BY-NC (NLLB — **[TBD] verify NLLB licence permits this use before selecting it over opus-mt**) | Display translation only | Multiple pairs | Public release | `ingestion/translate.py`, never a classification input |
 | `lingua-language-detector` | pemistahl | github.com/pemistahl/lingua-py | Apache-2.0 | Language detection | 75+ languages | Public release | `ingestion/language.py` |
 
-> **No licence claim above is verified.** Every `[TBD]` in this table is a genuine open item — verifying that LIAR, FakeNewsNet, and the eventual Kaggle selection permit this specific academic use (training + evaluation, non-commercial, published in an FYP report) is a **Week 2 task**, owned by B1, and is added to the Implementation Plan open-items tracker (§14 of this document cross-references POLIS-IMPL-006 §12).
+> **One licence is read, one is not, and the difference is stated rather than smoothed over.** The Cardiff NLP terms were read from the dataset card on 2026-08-13 and are quoted above. The hostility corpus terms were **not** — the CC BY 4.0 that turns up in search results is on the SemEval paper, and a paper licence is not a data licence. **TBD-20 stays open and blocks Week 8.**
+>
+> Two conditions attach to the Cardiff NLP data and both are binding here:
+>
+> 1. **CC BY 3.0 requires attribution.** The model card (DOC-008) and the FYP report must credit the dataset and its authors.
+> 2. **Twitter ToS compliance is required.** POLIS therefore does **not** redistribute the data. `ml/data/` is git-ignored (verified), the repository is public, and no derived file containing the original text is committed. The trained *weights* are a derived work and may be published; the *corpus* may not.
+>
+> **Domain mismatch is a known and declared limitation, not a discovered defect.** The corpus is tweets. POLIS ingests news RSS. Register, length, and formality all differ, and accuracy will suffer for it. DOC-008 must report this as a limitation and, where possible, quantify it — an examiner finding it first is far worse than the report naming it.
 
 ---
 
