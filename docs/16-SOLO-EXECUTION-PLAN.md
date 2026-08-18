@@ -45,10 +45,36 @@ Stated availability: **1–2 hours per day.** Stated deadline: **6 months.**
 |---|---|
 | Hours per week | **9** (1.5 h × 6 days — the honest midpoint, not the optimistic 14) |
 | Weeks remaining | **24** (6 months ≈ 26 weeks; Weeks 1 and 2 complete) |
-| Nominal submission | **mid-February 2027** ⟵ **[TBD-23]** — confirm the exact university date |
+| Faculty deadline | **mid-February 2027 — no exact date published** ⟵ TBD-23 |
+| **Internal target** | **31 January 2027** — the plan finishes here, ~2 weeks before the earliest plausible faculty date |
 | Gross budget | **216 hours** |
 | Reserve held back | 32 h (~15%), of which three are whole buffer weeks in §6 (13, 22, 26) |
 | **Spendable** | **184 hours** |
+
+### 2.2 An unpublished deadline is planned as its earliest plausible date
+
+The faculty has not given a date, only "mid-February". An unannounced deadline can be announced *earlier* than assumed, and a plan that finishes exactly on the assumed date has no answer when that happens.
+
+Anchoring Week 3 to **Monday 17 August 2026**, the 24-week schedule lands like this:
+
+| Milestone | Week | Date |
+|---|---|---|
+| RSS ingest working | W3–4 | 17–30 Aug 2026 |
+| Pipeline unattended on the stub | W8 | 21–27 Sep 2026 |
+| Buffer | W13 | 26 Oct – 1 Nov 2026 |
+| Real model swapped in | W16 | 16–22 Nov 2026 |
+| Both indicators + alerts | W18 | 30 Nov – 6 Dec 2026 |
+| Cloud deployment | W21 | 21–27 Dec 2026 |
+| Buffer | W22 | 28 Dec – 3 Jan 2027 |
+| Report + demo rehearsal | W25 | 18–24 Jan 2027 |
+| **Submission-ready** | **W26** | **25–31 Jan 2027** |
+
+**That is roughly two weeks clear of mid-February.** Those two weeks are not a fourth buffer to spend — they are the answer to "the deadline moved up", which is the one schedule risk no amount of working faster fixes.
+
+Two consequences worth stating, because both will feel wrong in the moment:
+
+- **December is on the critical path.** Weeks 18–22 run through exam season and the winter break. If either takes a week, it comes out of W22's buffer, and that is exactly what W22 is for.
+- **The plan is "done" on 31 January.** If the faculty date turns out to be 20 February, that is three spare weeks for polish and rehearsal — not three weeks to add a feature. §3.3 is the only list scope may grow from, and not before Week 20.
 
 > **Why 9 and not 14.** "1 to 2 hours per day" almost never means seven days. Coursework, exams and illness take whole weeks, not hours. Budgeting the optimistic end of a stated range is how a plan quietly becomes fiction. That reasoning is unchanged by the longer deadline — **more calendar, not more hours per week.**
 
@@ -254,6 +280,7 @@ The chain that cannot be reordered: text must be ingested and cleaned before it 
 | Indicators slip past W18 | Cut IND-02 first, then take from W22's buffer. IND-01 alone still proves the mechanism |
 | Frontend slips | Cut the Dashboard chart, then fold Alert Detail back into a panel — in that order. Feed + Alert Center carry the demo alone |
 | Cloud deploy (W21) is not working by end of W21 | **Stop.** Write R-8 up with the real numbers you hit. A documented free-tier limit is a finding; a week lost to it is not |
+| Faculty announces a date earlier than 14 Feb 2027 | Recompute from §2.2's table. Anything before **31 Jan** means cutting from §3.1 in reverse §3.3 order — cloud first, then Alert Detail, then the chart. Never W23 security or W24 tests |
 | Both buffer weeks gone by W20 | Freeze scope where it stands. Spend everything remaining on W23 security, W24 tests, W25 report |
 
 Weeks 23, 24 and 25 are never cut. A prototype that fails its own security report is worse than a smaller prototype that passes, and an unwritten report fails regardless of what was built.
@@ -307,7 +334,7 @@ Keep, because they are not team overhead:
 | **TBD-20** | Hostility corpus licence. The CC BY 4.0 that surfaces for OffensEval covers the **paper**, not the data | **OPEN** — decision point §4.5 | **end of Week 6** |
 | **TBD-21** | France 24 and BBC terms of service unread. `robots.txt` is a crawling rule, not a licence | **OPEN** — GOV-9 | **before first ingest, Week 3** |
 | ~~TBD-22~~ | Real deadline | **RESOLVED 2026-08-13 — 6 months, ~24 weeks remaining.** v1.1 had planned against 14 | closed |
-| **TBD-23** | Exact university submission date | **OPEN.** "6 months" is planned as mid-February 2027. A schedule built on an approximate deadline is the same defect as one built on an approximate headcount | **Week 3** |
+| ~~TBD-23~~ | Exact university submission date | **RESOLVED as far as it can be 2026-08-13 — faculty published no date; "mid-February 2027" is all that exists.** Handled by targeting **31 Jan 2027** (§2.2) rather than by guessing a date. Re-open the moment faculty announces one | closed, with a standing watch |
 
 TBD-1, TBD-2 and TBD-3 closed on 2026-08-13 — see DOC-007 §4.1–4.3.
 
