@@ -31,16 +31,16 @@ Decision-status convention used throughout: **[CONFIRMED]** agreed decision · *
 
 | # | Document | Purpose | Owner | Depends on | Status | Version |
 |---|---|---|---|---|---|---|
-| 07 | [ML & Dataset Spec](07-ML-DATASET-SPEC.md) | ML task scope, dataset plan, provenance, leakage prevention, model architecture | Team B | PRD §9/§10, TRD §5.5/§7 | Plan complete; **dataset sections [TBD] pending Phase 3** | 1.0 |
+| 07 | [ML & Dataset Spec](07-ML-DATASET-SPEC.md) | ML task scope, dataset plan, provenance, leakage prevention, **§4.1–4.3 languages / topics / regions** | Solo | PRD §9/§10, TRD §5.5/§7 | **TBD-1/2/3/18 resolved**; corpus chosen and its licence read | 1.1 |
 | 08 | [ML Evaluation & Model Card](08-ML-EVALUATION-MODEL-CARD.md) | Evidence document: model card, metrics, error analysis, acceptance | Team B | Doc 07 | Template complete; **all metrics NOT RUN** | 0.1 |
 | 09 | [Security & Privacy Report](09-SECURITY-PRIVACY-REPORT.md) | Threat model, ASVS checklist, privacy controls, test results | Team C + A2 | PRD §12/§13, TRD §14 | Design complete; **all tests NOT TESTED** | 0.1 |
 | 10 | [API Documentation](10-API-DOCUMENTATION.md) | All 44 endpoints, contract matrix, OpenAPI plan, code reconciliation | Team C | TRD §12 (authoritative source) | Complete; **all endpoints SPECIFIED, NOT IMPLEMENTED** | 1.0 |
 | 11 | [Deployment & Operations Guide](11-DEPLOYMENT-OPERATIONS-GUIDE.md) | Local/cloud setup, env vars, DR, troubleshooting | Team C + D1 | TRD §10 | Procedure complete; **not yet executed** | 1.0 |
 | 12 | [User Guide](12-USER-GUIDE.md) | Role-specific guides (Analyst/Supervisor/Admin), terminology | D1 | Flow doc, UX doc | Complete — behaviour-accurate, no screenshots yet | 1.1 |
 | 13 | [Testing & QA Report](13-TESTING-QA-REPORT.md) | Test strategy, traceability, release gate | All | TRD §16, PRD §22/§23 | Template complete; **all results NOT RUN — RELEASE BLOCKED** | 0.1 |
-| 14 | [Data Source & Governance](14-DATA-SOURCE-GOVERNANCE.md) | Source register, licensing, ethical safeguards | Team A | PRD §9/§13, TRD §5.1 | Categories confirmed; **specific source instances [TBD]** | 1.0 |
+| 14 | [Data Source & Governance](14-DATA-SOURCE-GOVERNANCE.md) | Source register, licensing, ethical safeguards | Solo | PRD §9/§13, TRD §5.1 | **8 named feeds, probed 2026-08-13**; 2 terms checks open (GOV-9) | 1.1 |
 | 15 | [Architecture Decision Records](15-ARCHITECTURE-DECISIONS.md) | The *why* behind 15 major decisions the TRD already specifies | Team C + B | TRD (the *how*) | Complete — **4 statuses corrected to match source docs** | 1.1 |
-| 16 | [Solo Execution Plan](16-SOLO-EXECUTION-PLAN.md) | The plan that is actually executed. One developer, ~225 h, ~75% scope cut with every deferral reasoned | Solo | DOC-006 (superseded §3/§5/§6) | **Confirmed — read this before DOC-006** | 1.0 |
+| 16 | [Solo Execution Plan](16-SOLO-EXECUTION-PLAN.md) | The plan that is actually executed. One developer, 9 h/week, ~126 h, ~90% scope cut in two rounds with every deferral reasoned | Solo | DOC-006 (superseded §3/§5/§6) | **Confirmed — read this before DOC-006** | 1.1 |
 
 ## Supporting Files
 
@@ -64,4 +64,8 @@ Decision-status convention used throughout: **[CONFIRMED]** agreed decision · *
 
 ## What "Complete" Means in This Package
 
-A document marked **Complete** has a fully specified design with no unresolved ambiguity in its own scope — it does not mean the system it describes has been built, tested, or deployed. Documents 8, 9, 10 (implementation status), 11 (execution), and 13 are explicit about this: their *design* is complete while their *evidence* is honestly `NOT RUN`/`NOT TESTED`/`NOT IMPLEMENTED`, because the repository contains no application code at the time of this documentation package's authorship (confirmed: `docs/` is the only content). These documents are the reporting shells Implementation Plan Phases 1–11 will fill with real results — re-issuing them with fabricated numbers instead of running the actual work would defeat their purpose.
+A document marked **Complete** has a fully specified design with no unresolved ambiguity in its own scope — it does not mean the system it describes has been built, tested, or deployed. Documents 8, 9, 10 (implementation status), 11 (execution), and 13 are explicit about this: their *design* is complete while their *evidence* is honestly `NOT RUN`/`NOT TESTED`/`NOT IMPLEMENTED`, because the work they report has not been done yet.
+
+**Updated 2026-08-13.** The original wording said the repository contained no application code and that `docs/` was its only content. That was true when written and is **false now** — Weeks 1 and 2 shipped the scaffold, the frozen `score_text` stub, the SSRF guard and the guarded fetch layer, with 73 tests and CI green. The evidence markers in Docs 08/09/10/11/13 nonetheless remain correct: no model is trained, no ASVS control is tested, and no endpoint beyond `/health` exists. These documents are the reporting shells the remaining weeks fill with real results — re-issuing them with fabricated numbers instead of running the actual work would defeat their purpose.
+
+Read DOC-016 for what is actually being built. DOC-006's 16-week, six-person schedule is design intent, not delivery.
