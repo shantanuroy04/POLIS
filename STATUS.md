@@ -115,6 +115,51 @@ Measure real volume in Weeks 5–8. If it is too thin: widen the window to 72 h,
 
 ---
 
+## Which documents you will actually open, and when
+
+18 documents exist. You will open **four** in the next two months.
+
+### Open now
+
+| Doc | Why |
+|---|---|
+| **[STATUS.md](STATUS.md)** | This file. The only one you keep current |
+| **[16 Solo Plan](docs/16-SOLO-EXECUTION-PLAN.md)** | Scope, cuts, slip rules. Read §6.2 when a week goes wrong |
+| **[14 Governance](docs/14-DATA-SOURCE-GOVERNANCE.md)** | Sources and their terms. Read before touching a feed |
+| **[07 ML/Dataset §4–5](docs/07-ML-DATASET-SPEC.md)** | Languages, topics, regions, corpus — the label space you build against |
+
+### Open later, once, at a specific week
+
+Do **not** read these now. Each is needed exactly once.
+
+| Doc | Open at | For |
+|---|---|---|
+| [05 Backend Schema](docs/05-BACKEND-SCHEMA.md) | **Week 5** | The DDL you write migrations from. Ignore the 15 tables you are not building |
+| [10 API Documentation](docs/10-API-DOCUMENTATION.md) | **Week 9** | Endpoint contracts. Only 10 of the 44 matter |
+| [04 UI/UX Spec](docs/04-UI-UX-SPEC.md) | **Week 11** | Severity system, palette, component specs |
+| [03 App Flow](docs/03-APP-FLOW.md) | **Week 11, 19** | Page states. Only 4 of 13 pages matter |
+| [01 PRD §10](docs/01-PRD.md) | **Week 17** | Indicator formulas and worked examples. **The single most important section in the package** |
+| [02 TRD §6](docs/02-TRD.md) | **Week 7** | The chained `pipeline_cycle` design |
+| [08 Model Card](docs/08-ML-EVALUATION-MODEL-CARD.md) | **Week 16** | You *fill this in*. It is a deliverable, not a reference |
+| [09 Security Report](docs/09-SECURITY-PRIVACY-REPORT.md) | **Week 23** | You fill it in. Deliverable |
+| [13 Testing Report](docs/13-TESTING-QA-REPORT.md) | **Week 24** | You fill it in. Holds the release gate |
+| [11 Deployment Guide](docs/11-DEPLOYMENT-OPERATIONS-GUIDE.md) | **Week 21** | Cloud attempt, then the demo runbook |
+| [12 User Guide](docs/12-USER-GUIDE.md) | **Week 25** | Feeds the report and the demo script |
+| [15 ADRs](docs/15-ARCHITECTURE-DECISIONS.md) | **Week 25** | *Why* the architecture is what it is. Strongest material in the viva |
+
+### Dead — never open again
+
+| Doc | Why |
+|---|---|
+| ~~[06 Implementation Plan](docs/06-IMPLEMENTATION-PLAN.md)~~ | **Superseded by DOC-016.** A 16-week schedule for six people. Kept only because the report may cite the original design intent |
+| ~~[Consistency Report](docs/DOCUMENT-CONSISTENCY-REPORT.md)~~ | A one-time audit that has already been performed and acted on. Historical record, not a tool |
+
+### One that should shrink
+
+**DOC-010** hand-writes 44 endpoint contracts. FastAPI generates OpenAPI from the code itself. From Week 9, the generated schema is the truth and DOC-010 becomes a short page pointing at `/openapi.json` — maintaining both is duplicate work with a guaranteed drift.
+
+---
+
 ## Where things are
 
 | | |
