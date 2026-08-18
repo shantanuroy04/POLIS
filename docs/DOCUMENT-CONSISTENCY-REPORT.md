@@ -175,7 +175,8 @@ ADR-002, 004, 005, 008, 009, 010, 012, 013, 014, 015 — each traced to a source
 | ~~GOV-8~~ | **CLOSED — eight feeds named and probed** | Doc 14 §2 | — | closed |
 | **TBD-18** | **RESOLVED 2026-08-13 — `cardiffnlp/tweet_sentiment_multilingual`, CC BY 3.0 + Twitter ToS, terms read** | Doc 07 §5 | — | closed |
 | **TBD-20** | **Hostility corpus licence NOT verified.** The CC BY 4.0 found covers the SemEval *paper*, not the data | Doc 07 §5 | You | **blocks Week 8** |
-| **TBD-21** | **France 24 and BBC terms of service not read.** `robots.txt` is a crawling rule, not a licence | Doc 14 §2, GOV-9 | You | **blocks first ingest, Week 3** |
+| **TBD-21** | **Half closed 2026-08-13.** France 24 read → forbids collection and storage for software operation → **3 feeds removed**. BBC unread (`bbc.co.uk` blocks automated fetch) → **not ingested**. Register is now 7 UN News + ReliefWeb | Doc 14 §2.0.0, §2.0.3 | You | BBC half open |
+| **GOV-11** | **Publisher concentration** — 7 of 8 feeds are UN News. Declared as a corpus limitation, not hidden | Doc 14 §2.0.2 | You | before Week 20 |
 
 ---
 

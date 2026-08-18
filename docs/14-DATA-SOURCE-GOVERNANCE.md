@@ -21,22 +21,54 @@ This is a live register. As Team A configures real sources (Implementation Plan 
 
 ## 2. Source Register
 
-**Demo languages: Arabic, English, French** ⟵ TBD-1, DOC-007 §4.1.
+**Demo languages: Arabic, English, French** ⟵ TBD-1, DOC-007 §4.1. Balance across the register: English ×4, Arabic ×2, French ×2.
 
 Every feed below was probed on **2026-08-13** with POLIS's own User-Agent. All eight returned **HTTP 200** with an RSS content type. That is evidence of *availability*, and nothing more — it is not a terms check, and the two are recorded separately on purpose.
 
-| # | Source | Lang | Feed URL | Reachable 2026-08-13 | robots.txt | Terms status |
-|---|---|---|---|---|---|---|
-| S-01 | UN News | `en` | `https://news.un.org/feed/subscribe/en/news/all/rss.xml` | 200 `application/rss+xml` | No directives returned for the host | **Read.** UN permits reuse of news material with credit given and the UN advised; general site terms grant personal, non-commercial use without redistribution |
-| S-02 | UN News | `ar` | `https://news.un.org/feed/subscribe/ar/news/all/rss.xml` | 200 `application/rss+xml` | as S-01 | as S-01 |
-| S-03 | UN News | `fr` | `https://news.un.org/feed/subscribe/fr/news/all/rss.xml` | 200 `application/rss+xml` | as S-01 | as S-01 |
-| S-04 | France 24 | `en` | `https://www.france24.com/en/rss` | 200 `application/rss+xml` | **Read.** `User-agent: *` → `Disallow:` (nothing disallowed). Named AI-training crawlers are blocked individually | **[TBD-21]** — ToS not read |
-| S-05 | France 24 | `fr` | `https://www.france24.com/fr/rss` | 200 `application/rss+xml` | as S-04 | **[TBD-21]** |
-| S-06 | France 24 | `ar` | `https://www.france24.com/ar/rss` | 200 `application/rss+xml` | as S-04 | **[TBD-21]** |
-| S-07 | BBC Arabic | `ar` | `https://feeds.bbci.co.uk/arabic/rss.xml` | 200 `text/xml` | **Read.** Disallow list does not cover the feed path | **[TBD-21]** — ToS not read |
-| S-08 | ReliefWeb (OCHA) | `en` | `https://reliefweb.int/updates/rss.xml` | 200 `application/rss+xml` | **Read.** No rule blocking the feed path | **Partially read.** The public API is free but requires a pre-approved `appname` since 1 Nov 2025 (1,000 calls/day). **POLIS uses the RSS feed, not the API**, so the appname requirement does not currently apply — if that changes, registration is mandatory before the switch |
+| # | Source | Lang | Feed URL | Probed | Terms |
+|---|---|---|---|---|---|
+| S-01 | UN News — all news | `en` | `https://news.un.org/feed/subscribe/en/news/all/rss.xml` | 200 | **Read.** Reuse of news material permitted with credit given and the UN advised |
+| S-02 | UN News — all news | `ar` | `https://news.un.org/feed/subscribe/ar/news/all/rss.xml` | 200 | as S-01 |
+| S-03 | UN News — all news | `fr` | `https://news.un.org/feed/subscribe/fr/news/all/rss.xml` | 200 | as S-01 |
+| S-04 | UN News — peace & security | `en` | `https://news.un.org/feed/subscribe/en/news/topic/peace-and-security/rss.xml` | 200 | as S-01 |
+| S-05 | UN News — peace & security | `ar` | `https://news.un.org/feed/subscribe/ar/news/topic/peace-and-security/rss.xml` | 200 | as S-01 |
+| S-06 | UN News — Afrique | `fr` | `https://news.un.org/feed/subscribe/fr/news/region/afrique/rss.xml` | 200 | as S-01 |
+| S-07 | UN News — Middle East | `en` | `https://news.un.org/feed/subscribe/en/news/region/middle-east/rss.xml` | 200 | as S-01 |
+| S-08 | ReliefWeb (OCHA) | `en` | `https://reliefweb.int/updates/rss.xml` | 200 | **Partially read.** The API needs a pre-approved `appname` since 1 Nov 2025; **POLIS uses the RSS feed, not the API**, so it does not apply. Registration is mandatory before any switch |
 
-Balance: Arabic ×3, English ×3, French ×2. No single publisher exceeds three feeds, so one outlet's editorial line cannot dominate a language.
+All eight probed 2026-08-13 with POLIS's own User-Agent, each returning 200 with an RSS content type.
+
+### 2.0.0 France 24 was removed after its terms were read
+
+France 24's three feeds (all three languages) were listed in the first draft of this register on the strength of a `robots.txt` that permits `User-agent: *`. **Reading the actual terms reversed that decision.** France Médias Monde's legal notice states:
+
+> "It is also strictly forbidden to collect, store, use, extract, reproduce, directly or indirectly, permanently or temporarily, all or part of the content without authorization, by any means and for any purpose, automatically or manually, particularly for training, development, and operation of any software, system, and artificial intelligence device."
+
+It further asserts the Text and Data Mining opt-out under Article L122-5-3 of the French Intellectual Property Code, and grants **no exception for research, academic or private use**.
+
+POLIS collects, stores for 180 days, and operates a software system over that content. Every verb in that sentence describes POLIS. There is no reading under which this is permitted, and "it is only an FYP" is not one.
+
+**This is exactly why GOV-9 existed.** `robots.txt` said yes; the licence said no. A crawling rule is not a licence, and a register that had trusted the first would have shipped a violation into a public repository.
+
+### 2.0.2 Known limitation: publisher concentration
+
+Seven of the eight feeds are UN News. That is a **real weakness in the corpus and it is declared, not hidden**: an early-warning system reading mainly the UN's own reporting inherits the UN's framing, its story selection, and its silences. Sentiment measured across those feeds says something narrower than "sentiment in the region".
+
+It is the honest consequence of the constraint, and the constraint is itself a finding worth reporting: **most commercial news publishers explicitly prohibit the automated collection and storage that any monitoring system requires.** That is why real systems in this space license content or use aggregators such as GDELT rather than reading feeds directly. A ₹0 budget removes both options.
+
+Mitigations actually applied:
+
+- Topic and region feeds are used alongside all-news feeds, so story selection is at least varied within the publisher
+- ReliefWeb brings a second organisation, and an operational rather than editorial voice
+- DOC-008 and the FYP report must state this limitation next to any per-region or per-language finding
+- **GOV-11** tracks finding at least one non-UN publisher with compatible terms
+
+### 2.0.3 BBC Arabic is not ingested, because its terms could not be read
+
+`bbc.co.uk` refuses automated fetches, so the BBC terms of use were **not** read. Secondhand summaries exist and were deliberately not relied on — a 2007 news article about BBC licensing policy is not evidence of what the terms say in 2026.
+
+Under the DOC-016 §6.2 slip rule, a source whose terms have not been read is not fetched. BBC Arabic therefore stays out of the register until someone opens the page in a browser and records what it says. **TBD-21 remains open for BBC only; the France 24 half is closed by removal.**
+
 
 ### 2.0 What is collected, and why that bounds the licence question
 
@@ -45,14 +77,6 @@ Balance: Arabic ×3, English ×3, French ×2. No single publisher exceeds three 
 This is a governance decision, not a technical shortcut. An RSS summary is content the publisher deliberately syndicated for machine consumption; a scraped article body is not. Restricting collection to the feed payload keeps POLIS inside the narrow, defensible use every one of these publishers already invites, and removes the "no systematic reproduction" clause that a full-text scrape would run straight into.
 
 Retention stays 180 days for raw content (PRIV-4). Nothing collected is republished — the UI is private to project members and evaluators, and the corpus is never committed to the public repository.
-
-### 2.0.1 France 24 and the AI-crawler question
-
-France 24's `robots.txt` permits `User-agent: *` but individually blocks a long list of named AI-training crawlers (`AI2Bot`, `AlibabaBot`, and others). POLIS's User-Agent is not on that list, and the generic rule permits access.
-
-The signal is still worth reading honestly: that publisher does not want its content used to train models. **POLIS does not train on it.** Training data is the Cardiff NLP corpus (DOC-007 §5); France 24 content is inference input and is never written into a training set. The distinction is real, and it is recorded here rather than left to be assumed.
-
-If that ever stops being true — if any ingested content is used for training — these sources must be re-evaluated first.
 
 ### 2.1 What Is Deliberately Absent From This Table
 
@@ -120,7 +144,8 @@ Any new source category proposed after this document's baseline must be checked 
 | ~~GOV-6~~ | Confirm Telegram channels genuinely public | **CLOSED — descoped.** No Telegram adapter in the solo scope | 2026-08-13 |
 | GOV-7 | Design a takedown-request handling procedure | **OPEN.** Cheaper now than under pressure. A source asking for removal must have a documented path even though none has asked | You, Week 5 |
 | ~~GOV-8~~ | Populate §2 with ≥ 8 real sources | **CLOSED.** Eight named feeds in §2, each probed and recorded | 2026-08-13 |
-| **GOV-9** | Read the France 24 and BBC terms of service ⟵ **TBD-21** | **OPEN.** `robots.txt` is a crawling rule, not a licence, and treating one as the other is the error GOV exists to catch | You, **before first ingest — Week 3** |
+| GOV-9 | Read the France 24 and BBC terms of service ⟵ TBD-21 | **HALF CLOSED 2026-08-13. France 24: read, and it forbids exactly what POLIS does — all three feeds removed (§2.0.0). BBC: `bbc.co.uk` refuses automated fetch, terms unread, so BBC Arabic is not ingested (§2.0.3).** `robots.txt` said yes and the licence said no, which is the whole reason this item existed | BBC half open — You, before adding it |
+| **GOV-11** | Find at least one non-UN publisher with terms compatible with automated collection and 180-day storage | **OPEN.** Seven of eight feeds are UN News (§2.0.2). Candidates worth checking: VOA (US federal material is public domain, but AFP/AP/Reuters content is mixed in and is not), other UN-family agencies, and openly licensed outlets. Do not add any of them on the strength of `robots.txt` | You, **before Week 20** |
 | **GOV-10** | Re-verify all eight feeds before the demo | **OPEN.** A feed URL that worked in Week 2 is not evidence it works in Week 15 | You, Week 15 |
 
 This tracker feeds the consolidated open-items list in `DOCUMENT-CONSISTENCY-REPORT.md` — items are not duplicated with different wording in both places; this table is authoritative for governance-specific items.

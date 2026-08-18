@@ -274,7 +274,7 @@ The chain that cannot be reordered: text must be ingested and cleaned before it 
 
 | If | Then |
 |---|---|
-| TBD-21 (France 24 / BBC terms) unresolved at W3 | **Ingest only UN News and ReliefWeb**, whose terms are read. Four feeds is enough to build against. Do not fetch a source whose terms you have not read |
+| ~~TBD-21~~ | **Settled 2026-08-13 before Week 3 began.** France 24 removed — its terms forbid collecting and storing content for software operation. BBC unread because `bbc.co.uk` blocks automated fetch, so it is not ingested. The register is 7 UN News feeds + ReliefWeb ⟵ DOC-014 §2 |
 | TBD-20 unanswered by end of W6 | Treat it as **not cleared**. Sentiment only, hostility returns `not_applicable`, IND-02 drops. Deciding late costs more than deciding pessimistically |
 | Fine-tune fails or overruns W16 | Ship the stub, labelled as a stub. **Do not spend W17–18 rescuing it.** A working system with an honest stub beats a broken one with a real model |
 | Indicators slip past W18 | Cut IND-02 first, then take from W22's buffer. IND-01 alone still proves the mechanism |
