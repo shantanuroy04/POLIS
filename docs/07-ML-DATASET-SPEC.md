@@ -167,7 +167,7 @@ This deliberately reverses PRD TBD-14's "source→region map". Mapping by source
 | Dataset | Source | URL | License | Task | Language | Version/Date | Usage |
 |---|---|---|---|---|---|---|---|
 | **`cardiffnlp/tweet_sentiment_multilingual`** | Cardiff NLP (Barbieri et al., UMSAB) | huggingface.co/datasets/cardiffnlp/tweet_sentiment_multilingual | **CC BY 3.0**, plus a stated requirement to comply with Twitter Terms of Service and Twitter API Terms — read from the dataset card 2026-08-13 | Sentiment (negative/neutral/positive) | 8 languages; POLIS uses `ar`, `en`, `fr` | 2022 release | **Primary training data, sentiment head** |
-| Hostility corpus | **[TBD-20]** — OffensEval 2020 / MOLID (SemEval-2020 Task 12) is the leading candidate | aclanthology.org/2020.semeval-1.188 | **NOT VERIFIED.** The CC BY 4.0 found applies to the *paper*; the data distribution terms are a separate document and have not been read. Treating a paper licence as a data licence is exactly the error GOV checks exist to catch | Offensive / not offensive | `ar`, `en` (+ da, el, tr unused). **No French** | 2020 | Training data, hostility head — **blocks Week 8** |
+| **`textdetox/multilingual_toxicity_dataset`** | TextDetox (multilingual detox shared task) | huggingface.co/datasets/textdetox/multilingual_toxicity_dataset | **OpenRAIL++**, stated on the dataset card, read 2026-08-19. Permits research use and derivative models, subject to behavioural use restrictions | Binary toxic / non-toxic | 15 languages at ~5k each; POLIS uses `ar`, `en`, `fr` — **5,000 per language, balanced** | 2024–2025 | **Training data, hostility head** |
 | ~~LIAR~~ | — | — | **Superseded, not verified.** The disinfo head is descoped in DOC-016 §3.2, so no licence check is owed. Closing GOV-1 as "verified" would be false | — | — | — | Not used |
 | ~~FakeNewsNet~~ | — | — | **Superseded** — same reason. GOV-2 closed as descoped | — | — | — | Not used |
 | ~~Kaggle fake-news corpus~~ | — | — | **Superseded** — same reason. GOV-3 closed as descoped | — | — | — | Not used |
@@ -176,7 +176,34 @@ This deliberately reverses PRD TBD-14's "source→region map". Mapping by source
 | `Helsinki-NLP/opus-mt-*` or NLLB-200-distilled-600M | Helsinki-NLP / Meta | huggingface.co | CC-BY-4.0 (opus-mt) / CC-BY-NC (NLLB — **[TBD] verify NLLB licence permits this use before selecting it over opus-mt**) | Display translation only | Multiple pairs | Public release | `ingestion/translate.py`, never a classification input |
 | `lingua-language-detector` | pemistahl | github.com/pemistahl/lingua-py | Apache-2.0 | Language detection | 75+ languages | Public release | `ingestion/language.py` |
 
-> **One licence is read, one is not, and the difference is stated rather than smoothed over.** The Cardiff NLP terms were read from the dataset card on 2026-08-13 and are quoted above. The hostility corpus terms were **not** — the CC BY 4.0 that turns up in search results is on the SemEval paper, and a paper licence is not a data licence. **TBD-20 stays open and blocks Week 8.**
+### 5.1 TBD-20 resolved — and OffensEval rejected **[CONFIRMED 2026-08-19]**
+
+The hostility corpus is **`textdetox/multilingual_toxicity_dataset`**, not OffensEval / MOLID.
+
+OffensEval was the leading candidate on reputation. It loses on every axis that matters here:
+
+| | OffensEval / MOLID | TextDetox |
+|---|---|---|
+| French | **absent** — the French hostility head would have had no training data at all | **5,000 examples** |
+| Licence | never located. The CC BY 4.0 that surfaces covers the *paper* | **OpenRAIL++, stated on the dataset card** |
+| Balance | varies by language | 5,000 per language, uniform |
+| Delivery | shared-task distribution | ships raw text on the Hub |
+
+The French gap alone was decisive. DOC-007 §4.1 already recorded it as a known limitation to be reported separately; with TextDetox the limitation simply does not exist, which is better than reporting it honestly.
+
+**Two caveats, neither hidden.**
+
+**1. Binary labels against a three-class head.** TextDetox is toxic / non-toxic. POLIS's frozen contract has three hostility values plus `not_applicable`:
+
+    none · hostile_rhetoric · threatening_language · not_applicable
+
+Binary training supports **`none` and `hostile_rhetoric` only**. `threatening_language` has no training data and **the model will never emit it**. The contract does not change — the enum still permits the value, the model simply never produces it — so no schema, backend or frontend change follows. DOC-008 must state this plainly, and the UI must not imply a distinction the model cannot make.
+
+**2. OpenRAIL++ carries behavioural use restrictions**, unlike a plain CC licence. The restriction lists in the RAIL family typically prohibit surveillance and discriminatory profiling, which is a question that has to be *asked* of a political monitoring system rather than waved away. POLIS's answer is in PRD §10.6 and is architectural rather than promissory: it reads only public news content, never individuals, never private communications, never closed groups, and terminates at "visible to a human" without recommending or triggering any action.
+
+That answer looks sound, and it is **not yet verified against the licence's own clause list**. Reading the full OpenRAIL++ restrictions and recording the clause-by-clause check is **GOV-12, due before training starts in Week 14** — not before, because it gates nothing until then, and not after, because discovering a prohibited use with a trained model in hand is far more expensive.
+
+> **One licence is read, one is not, and the difference is stated rather than smoothed over.** The Cardiff NLP terms were read from the dataset card on 2026-08-13 and are quoted above. The hostility corpus terms are now read too — see §5.1. OffensEval's were never located, which is why it was rejected rather than adopted on reputation. **TBD-20 is closed; GOV-12 replaces it with a narrower question.**
 >
 > Two conditions attach to the Cardiff NLP data and both are binding here:
 >

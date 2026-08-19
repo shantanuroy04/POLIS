@@ -105,6 +105,26 @@ def simhash(normalized_text: str) -> int:
     return out & _MASK
 
 
+def to_signed64(value: int) -> int:
+    """Reinterpret an unsigned 64-bit SimHash as PostgreSQL's signed `bigint`.
+
+    SimHash fills all 64 bits, and roughly half of all values are >= 2**63, which
+    `bigint` cannot hold — the insert fails with "bigint out of range" on those
+    and succeeds on the rest, so the bug looks intermittent. The bit pattern is
+    what matters and is preserved; only its interpretation changes.
+
+    `hamming` masks to 64 bits, so signed and unsigned forms compare correctly
+    against each other. Converting on the way in anyway, because a column whose
+    values mean two different things depending on who wrote them is a trap.
+    """
+    return value - (1 << 64) if value >= (1 << 63) else value
+
+
+def to_unsigned64(value: int) -> int:
+    """Inverse of :func:`to_signed64`, for values read back from the database."""
+    return value + (1 << 64) if value < 0 else value
+
+
 def hamming(a: int, b: int) -> int:
     return ((a ^ b) & _MASK).bit_count()
 

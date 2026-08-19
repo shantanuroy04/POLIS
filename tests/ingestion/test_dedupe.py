@@ -30,6 +30,8 @@ from ingestion.dedupe import (
     jaccard,
     shingles,
     simhash,
+    to_signed64,
+    to_unsigned64,
 )
 
 _BASE = (
@@ -148,3 +150,26 @@ def test_jaccard_edges():
     assert jaccard(set(), set()) == 1.0
     assert jaccard({"a"}, set()) == 0.0
     assert jaccard({"a", "b"}, {"a", "b"}) == 1.0
+
+
+def test_signed_conversion_round_trips_and_preserves_hamming():
+    """PostgreSQL bigint is signed and SimHash fills all 64 bits, so about half
+    of all values exceed 2**63 and fail to insert. The bug looks intermittent
+    because the other half store fine. Bit patterns must survive the conversion,
+    and comparisons must work across the two representations."""
+    for text in (STORY, MASTHEAD_PREFIXED, DIFFERENT):
+        u = simhash(text)
+        assert to_unsigned64(to_signed64(u)) == u
+        assert -(2**63) <= to_signed64(u) < 2**63
+
+    a, b = simhash(STORY), simhash(MASTHEAD_PREFIXED)
+    assert hamming(to_signed64(a), to_signed64(b)) == hamming(a, b)
+    # Mixed representations must agree too — the database returns signed while a
+    # freshly computed fingerprint is unsigned.
+    assert hamming(a, to_signed64(b)) == hamming(a, b)
+
+
+def test_signed_conversion_handles_the_all_ones_edge():
+    assert to_signed64((1 << 64) - 1) == -1
+    assert to_unsigned64(-1) == (1 << 64) - 1
+    assert to_signed64(0) == 0

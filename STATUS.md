@@ -4,25 +4,23 @@
 
 | | |
 |---|---|
-| Today | **Week 5 of 26** · target **31 Jan 2027** |
+| Today | **Week 6 of 26** · target **31 Jan 2027** |
 | Capacity | 1 person, ~9 h/week |
-| Tests | **141 passing** (18 against real PostgreSQL), CI green |
+| Tests | **158 passing** (33 against real PostgreSQL), CI green |
 | Repo | https://github.com/shantanuroy04/POLIS |
 
 ---
 
 ## Do this next
 
-Three things, in order. Nothing else.
-
 | # | Task | Why now |
 |---|---|---|
-| **1** | **Repositories + the ingest writer** — RawItem → `raw_content` → `processed_content` | The tables exist and nothing writes to them yet |
-| **2** | **Wire dedupe to the database** — assign `cluster_id` from the 7-day window | Dedupe has never run on data that persists, so it is still unproven |
-| **3** | **Decide TBD-20** — is the hostility corpus licence usable? | Gates Week 8. Deciding late costs more than deciding pessimistically |
+| **1** | **`pipeline_cycle`** — chain ingest under the advisory lock, on a 10-minute tick | The stages exist; nothing runs them |
+| **2** | **Scoring stage** — feed `pending_analysis` rows through `score_text`, write `nlp_results` | Proves the frozen contract against the real database |
+| **3** | **Let it run unattended for 24 h** | The first honest volume measurement, which TBD-11 needs |
 
 ```bash
-docker start polis-db          # or the run command in tests/db/conftest.py
+docker start polis-db
 alembic upgrade head
 ```
 
@@ -34,7 +32,8 @@ alembic upgrade head
 | 2 | Decisions: languages, topics, regions, corpus. SSRF guard + guarded fetch | 73 tests |
 | 3 | RSS adapter, source registry, live source checker | 86 tests, 4 feeds parsing |
 | 4 | Cleaner, language detection, dedupe | 123 tests |
-| 5 | 8 tables, Alembic migration, models, advisory lock | **141 tests**, 18 against real PostgreSQL |
+| 5 | 8 tables, Alembic migration, models, advisory lock | 141 tests |
+| 6 | Ingest writer, dedupe wired to the database, TBD-20 decided | **158 tests**, 33 against real PostgreSQL |
 
 **The whole ingestion path runs end to end on real feeds:**
 
@@ -46,10 +45,23 @@ alembic upgrade head
 Feed → SSRF-guarded fetch → RSS parse → HTML stripped → NFKC normalised →
 language detected → fingerprinted.
 
-**The schema is live.** 8 tables, one migration, verified three ways: it applies
-to an empty database, `alembic check` finds no drift from the models, and
-downgrade-then-upgrade round-trips. CI runs a PostgreSQL service container and
-fails if it is unreachable, so the 18 schema tests cannot silently skip.
+**The schema is live** and **POLIS now keeps what it reads.** Two consecutive
+live runs against the four feeds:
+
+```
+run 1   110 fetched   110 stored     0 duplicates
+run 2   110 fetched     5 stored   105 duplicates
+        115 rows · 4 sources healthy · en 49 · ar 35 · fr 30 · unresolved 1
+```
+
+The five stored on the second run are genuinely new Arabic items. **That is the
+first time dedupe has been tested on data that persists** — until now it could
+only run on synthetic pairs, because duplication appears across polls.
+
+> **Near-duplicate detection has fired zero times on real data.** 115 items,
+> 115 clusters. That is either true — four sources with little syndication
+> overlap — or the thresholds are still wrong, and one run cannot tell the two
+> apart. Folded into TBD-11's Week 8 measurement rather than assumed either way.
 
 > **Dedupe is not yet validated on real data.** A single poll contains no
 > duplicates, because duplication shows up *across* polls and across days. It
@@ -61,6 +73,7 @@ fails if it is unreachable, so the 18 schema tests cannot silently skip.
 |---|---|
 | Languages | **Arabic, English, French** |
 | Sources | UN News ×3 + ReliefWeb. Terms read. France 24 removed (licence forbids it), BBC held (terms unreadable) |
+| Hostility corpus | **`textdetox/multilingual_toxicity_dataset`**, OpenRAIL++, 5k each in ar/en/fr. OffensEval rejected — no French, licence never located |
 | Training corpus | `cardiffnlp/tweet_sentiment_multilingual`, CC BY 3.0 |
 | Model | Fine-tune XLM-R. **Sentiment head certain, hostility conditional** |
 | Indicators | **IND-01 and IND-02 only** |
@@ -77,7 +90,7 @@ Everything else is closed or descoped. This table is now the **only** authoritat
 | ID | Question | Needed by |
 |---|---|---|
 | **TBD-11** | Real `n_min` values, measured from actual volume | Week 8 ⟵ **highest risk** |
-| **TBD-20** | Hostility corpus licence — is OffensEval's data actually usable? | end of Week 6 |
+| **GOV-12** | Read the OpenRAIL++ behavioural use restrictions clause by clause against POLIS's stated purpose | before training, Week 14 |
 | **GOV-11** | One non-UN publisher with compatible terms | before Week 20 |
 | **GOV-8** | PRD wants ≥ 8 sources; 4 are live | with GOV-11 |
 | **TBD-16** | Latency budget preconditions, measured not assumed | Week 8, re-checked Week 23 |
@@ -97,8 +110,7 @@ Measure real volume in Weeks 5–8. If it is too thin: widen the window to 72 h,
 
 | Weeks | | Ends |
 |---|---|---|
-| 6 | Repositories, ingest writes rows. **Decide TBD-20** | 13 Sep |
-| 7–8 | `pipeline_cycle` chained, running unattended 24 h | 27 Sep |
+| 7–8 | `pipeline_cycle` chained; scoring stage; unattended 24 h | 27 Sep |
 | 9–10 | Backend: auth, audit, 10 endpoints | 11 Oct |
 | 11–12 | Frontend: Feed + Alert Center | 25 Oct |
 | **13** | **Buffer — do not fill** | 1 Nov |
