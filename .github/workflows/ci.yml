@@ -64,6 +64,32 @@ jobs:
   python:
     name: Python lint, test, audit
     runs-on: ubuntu-latest
+
+    # A real PostgreSQL, because the schema leans on JSONB, partial unique
+    # indexes, regex CHECK constraints and advisory locks. SQLite has none of
+    # them, and a green suite against a database POLIS never runs on is worse
+    # than no suite. The db tests skip locally when Docker is off; here they
+    # must not skip, which is what the guard step below enforces.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: polis
+          POSTGRES_PASSWORD: ci-only-not-a-secret
+          POSTGRES_DB: polis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U polis"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://polis:ci-only-not-a-secret@localhost:5432/polis
+      DATABASE_URL: postgresql+psycopg://polis:ci-only-not-a-secret@localhost:5432/polis
+      JWT_SECRET: ci-only-secret-at-least-32-characters-long
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -84,6 +110,31 @@ jobs:
 
       - name: Black (format check)
         run: black --check .
+
+      - name: Database must be reachable, so the db tests cannot skip
+        run: |
+          # The db tests skip when no PostgreSQL is reachable, which is right on
+          # a laptop with Docker off and wrong here. Without this, a broken
+          # service container turns 18 schema tests into a silent no-op and CI
+          # still reports green — the same failure mode as a secret scanner that
+          # scans zero bytes and finds no leaks.
+          python - <<'PY'
+          import sys
+          from tests.db.conftest import TEST_DATABASE_URL, _reachable
+          if not _reachable(TEST_DATABASE_URL):
+              sys.exit(f"::error::no PostgreSQL at {TEST_DATABASE_URL}; db tests would skip")
+          print(f"reachable: {TEST_DATABASE_URL}")
+          PY
+
+      - name: Alembic migrations apply to an empty database
+        run: |
+          alembic upgrade head
+          # Nothing new to generate means the models and the migration agree.
+          # Without this, a model edit silently ships without its migration and
+          # the mismatch surfaces at deploy time instead of here.
+          alembic check
+          alembic downgrade base
+          alembic upgrade head
 
       - name: Pytest with coverage
         run: pytest --cov --cov-report=term-missing --cov-report=xml

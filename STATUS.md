@@ -4,9 +4,9 @@
 
 | | |
 |---|---|
-| Today | **Week 4 of 26** · target **31 Jan 2027** |
+| Today | **Week 5 of 26** · target **31 Jan 2027** |
 | Capacity | 1 person, ~9 h/week |
-| Tests | **123 passing**, CI green on `main` and `develop` |
+| Tests | **141 passing** (18 against real PostgreSQL), CI green |
 | Repo | https://github.com/shantanuroy04/POLIS |
 
 ---
@@ -17,11 +17,14 @@ Three things, in order. Nothing else.
 
 | # | Task | Why now |
 |---|---|---|
-| **1** | **8 tables + Alembic migrations 0001–0004** | Everything built so far is in-memory. Nothing persists |
-| **2** | **SQLAlchemy models + repositories**, ingest writes rows | First time POLIS keeps anything |
+| **1** | **Repositories + the ingest writer** — RawItem → `raw_content` → `processed_content` | The tables exist and nothing writes to them yet |
+| **2** | **Wire dedupe to the database** — assign `cluster_id` from the 7-day window | Dedupe has never run on data that persists, so it is still unproven |
 | **3** | **Decide TBD-20** — is the hostility corpus licence usable? | Gates Week 8. Deciding late costs more than deciding pessimistically |
 
-Open [docs/05-BACKEND-SCHEMA.md](docs/05-BACKEND-SCHEMA.md) for the DDL. **Ignore the 15 tables you are not building.**
+```bash
+docker start polis-db          # or the run command in tests/db/conftest.py
+alembic upgrade head
+```
 
 ## Done
 
@@ -30,7 +33,8 @@ Open [docs/05-BACKEND-SCHEMA.md](docs/05-BACKEND-SCHEMA.md) for the DDL. **Ignor
 | 1 | Repo, CI, security headers, frozen `score_text` stub, design tokens | 36 tests, 3 CI gates green |
 | 2 | Decisions: languages, topics, regions, corpus. SSRF guard + guarded fetch | 73 tests |
 | 3 | RSS adapter, source registry, live source checker | 86 tests, 4 feeds parsing |
-| 4 | Cleaner, language detection, dedupe | **123 tests** |
+| 4 | Cleaner, language detection, dedupe | 123 tests |
+| 5 | 8 tables, Alembic migration, models, advisory lock | **141 tests**, 18 against real PostgreSQL |
 
 **The whole ingestion path runs end to end on real feeds:**
 
@@ -40,7 +44,12 @@ Open [docs/05-BACKEND-SCHEMA.md](docs/05-BACKEND-SCHEMA.md) for the DDL. **Ignor
 ```
 
 Feed → SSRF-guarded fetch → RSS parse → HTML stripped → NFKC normalised →
-language detected → fingerprinted. Nothing is stored yet; that is Week 5.
+language detected → fingerprinted.
+
+**The schema is live.** 8 tables, one migration, verified three ways: it applies
+to an empty database, `alembic check` finds no drift from the models, and
+downgrade-then-upgrade round-trips. CI runs a PostgreSQL service container and
+fails if it is unreachable, so the 18 schema tests cannot silently skip.
 
 > **Dedupe is not yet validated on real data.** A single poll contains no
 > duplicates, because duplication shows up *across* polls and across days. It
@@ -88,7 +97,7 @@ Measure real volume in Weeks 5–8. If it is too thin: widen the window to 72 h,
 
 | Weeks | | Ends |
 |---|---|---|
-| 5–6 | Database: 8 tables, migrations, models. **Decide TBD-20** | 13 Sep |
+| 6 | Repositories, ingest writes rows. **Decide TBD-20** | 13 Sep |
 | 7–8 | `pipeline_cycle` chained, running unattended 24 h | 27 Sep |
 | 9–10 | Backend: auth, audit, 10 endpoints | 11 Oct |
 | 11–12 | Frontend: Feed + Alert Center | 25 Oct |
