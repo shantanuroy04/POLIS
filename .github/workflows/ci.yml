@@ -86,7 +86,9 @@ jobs:
           --health-retries 10
 
     env:
-      TEST_DATABASE_URL: postgresql+psycopg://polis:ci-only-not-a-secret@localhost:5432/polis
+      # A database of its own, created by the test fixtures. Sharing it with
+      # DATABASE_URL let development rows leak into assertions locally.
+      TEST_DATABASE_URL: postgresql+psycopg://polis:ci-only-not-a-secret@localhost:5432/polis_test
       DATABASE_URL: postgresql+psycopg://polis:ci-only-not-a-secret@localhost:5432/polis
       JWT_SECRET: ci-only-secret-at-least-32-characters-long
 

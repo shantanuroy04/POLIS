@@ -8,11 +8,18 @@ verifiable on day one. Routers, auth, RBAC, and audit arrive in Phase 5
 
 from __future__ import annotations
 
+import contextlib
+import logging
+from collections.abc import AsyncIterator
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.config import Settings, get_settings
+from backend.scheduler import create_scheduler
+
+log = logging.getLogger(__name__)
 
 API_PREFIX = "/api/v1"
 
@@ -31,7 +38,42 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+@contextlib.asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Start the scheduler with the app, stop it with the app. ⟵ ADR-011
+
+    The scheduler lives inside the API process because the free tier gives one
+    always-on service and the pipeline is I/O-bound and idle most of every tick.
+    `app.state.scheduler` is None when disabled, so a test client never starts a
+    background thread it did not ask for.
+    """
+    scheduler = getattr(app.state, "scheduler", None)
+    if scheduler is not None:
+        scheduler.start()
+        log.info("scheduler started: pipeline_cycle every %s min", _interval_of(scheduler))
+    try:
+        yield
+    finally:
+        if scheduler is not None:
+            # wait=False: a shutdown must not block on a running cycle. The
+            # advisory lock is transaction-scoped, so an interrupted run releases
+            # it rather than locking the pipeline out until a human notices.
+            scheduler.shutdown(wait=False)
+            log.info("scheduler stopped")
+
+
+def _interval_of(scheduler) -> str:
+    job = scheduler.get_job("pipeline_cycle")
+    return str(getattr(job.trigger, "interval", "?")) if job else "?"
+
+
+def create_app(settings: Settings | None = None, *, with_scheduler: bool = False) -> FastAPI:
+    """Build the app.
+
+    `with_scheduler` defaults to False so that importing the app — in a test, in
+    Alembic, in a REPL — never starts polling the internet. The deployed entry
+    point opts in explicitly.
+    """
     settings = settings or get_settings()
     settings.assert_production_safe()
 
@@ -42,7 +84,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         docs_url=f"{API_PREFIX}/docs" if settings.is_local else None,
         redoc_url=None,
         openapi_url=f"{API_PREFIX}/openapi.json" if settings.is_local else None,
+        lifespan=_lifespan,
     )
+
+    app.state.scheduler = create_scheduler(settings) if with_scheduler else None
 
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(

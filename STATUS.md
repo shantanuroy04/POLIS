@@ -4,9 +4,9 @@
 
 | | |
 |---|---|
-| Today | **Week 6 of 26** · target **31 Jan 2027** |
+| Today | **Week 7 of 26** · target **31 Jan 2027** |
 | Capacity | 1 person, ~9 h/week |
-| Tests | **158 passing** (33 against real PostgreSQL), CI green |
+| Tests | **169 passing** (44 against real PostgreSQL), CI green |
 | Repo | https://github.com/shantanuroy04/POLIS |
 
 ---
@@ -15,13 +15,15 @@
 
 | # | Task | Why now |
 |---|---|---|
-| **1** | **`pipeline_cycle`** — chain ingest under the advisory lock, on a 10-minute tick | The stages exist; nothing runs them |
-| **2** | **Scoring stage** — feed `pending_analysis` rows through `score_text`, write `nlp_results` | Proves the frozen contract against the real database |
-| **3** | **Let it run unattended for 24 h** | The first honest volume measurement, which TBD-11 needs |
+| **1** | **Let it run unattended for 24 h** and record what comes out | The first honest volume measurement. **TBD-11 depends on it** |
+| **2** | **Backend: auth, audit, 4 endpoints** | The pipeline fills tables nothing can read yet |
+| **3** | Remaining 6 endpoints | Enough for the feed and the alert list |
 
 ```bash
 docker start polis-db
 alembic upgrade head
+uvicorn backend.main:app --reload      # scheduler off
+python -c "from backend.scheduler import pipeline_cycle; pipeline_cycle()"
 ```
 
 ## Done
@@ -33,7 +35,8 @@ alembic upgrade head
 | 3 | RSS adapter, source registry, live source checker | 86 tests, 4 feeds parsing |
 | 4 | Cleaner, language detection, dedupe | 123 tests |
 | 5 | 8 tables, Alembic migration, models, advisory lock | 141 tests |
-| 6 | Ingest writer, dedupe wired to the database, TBD-20 decided | **158 tests**, 33 against real PostgreSQL |
+| 6 | Ingest writer, dedupe wired to the database, TBD-20 decided | 158 tests |
+| 7 | Scoring stage, chained `pipeline_cycle`, advisory lock, scheduler | **169 tests**, 44 against real PostgreSQL |
 
 **The whole ingestion path runs end to end on real feeds:**
 
@@ -58,10 +61,27 @@ The five stored on the second run are genuinely new Arabic items. **That is the
 first time dedupe has been tested on data that persists** — until now it could
 only run on synthetic pairs, because duplication appears across polls.
 
-> **Near-duplicate detection has fired zero times on real data.** 115 items,
-> 115 clusters. That is either true — four sources with little syndication
+> **Near-duplicate detection has fired zero times on real data.** 116 items,
+> 116 clusters. That is either true — four sources with little syndication
 > overlap — or the thresholds are still wrong, and one run cannot tell the two
 > apart. Folded into TBD-11's Week 8 measurement rather than assumed either way.
+
+**The pipeline is chained and runs.** One job on a 10-minute tick, guarded by a
+PostgreSQL advisory lock: ingest → score → `nlp_results`.
+
+```
+cycle 1   4 sources · 1 new item · 16 scored · 0 failures
+cycle 2   4 sources · 0 new      ·  0 scored
+116 items scored · negative 40 · neutral 44 · positive 32
+```
+
+> **6.8 ms per item is the stub, not a model.** It measures pipeline overhead
+> only — everything except inference is negligible. The real figure lands in
+> Week 16 against NFR-1.3's 1,500 ms budget, and TBD-16 is what checks it.
+
+Stages D (indicators) and E (alerts) join in Week 17. They are **absent rather
+than stubbed** — an empty function logging "computing indicators" reads like a
+working stage in the log of a demo where nothing is computed.
 
 > **Dedupe is not yet validated on real data.** A single poll contains no
 > duplicates, because duplication shows up *across* polls and across days. It
